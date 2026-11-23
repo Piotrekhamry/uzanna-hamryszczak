@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planer sali — Zuzanna Hamryszczak</title>
+<meta name="description" content="Planer sali: wpisz wymiary, ustaw stoły, krzesła i scenę, i sprawdź, ilu gości się zmieści.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%2314161a'/><text x='32' y='43' font-family='Georgia,serif' font-size='30' fill='%23d4b07a' text-anchor='middle'>ZH</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e13; --bg2:#12161c; --card:#181d24; --line:#2a2f37;
+    --text:#f1ece4; --muted:#a8a39b; --gold:#d4b07a; --gold2:#b98f55;
+    --ok:#7fbf8a; --bad:#e07a6a; --warn:#e8b75c;
+    --serif:'Lora',Georgia,serif; --sans:'Poppins',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  button,input,select{font-family:inherit;color:inherit}
+  a{color:inherit}
+
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;border-bottom:1px solid var(--line);background:var(--bg)}
+  .logo{font-family:var(--serif);font-size:1.15rem;text-decoration:none}
+  .top .title{display:flex;align-items:baseline;gap:14px}
+  .top .title span{color:var(--gold);font-size:.72rem;letter-spacing:.24em;text-transform:uppercase}
+  .back{font-size:.82rem;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:7px 14px;border-radius:999px}
+  .back:hover{color:var(--text);border-color:var(--gold)}
+
+  .app{display:grid;grid-template-columns:330px 1fr;height:calc(100vh - 62px);height:calc(100dvh - 62px)}
+  aside{border-right:1px solid var(--line);overflow-y:auto;padding:18px 18px 40px;background:var(--bg2)}
+  .sec{margin-bottom:22px}
+  .sec h3{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .sec h3 b{width:20px;height:20px;border-radius:50%;background:var(--gold);color:#14161a;display:grid;place-items:center;font-size:.7rem;letter-spacing:0}
+  .field{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .field label{color:#d6d0c7;font-size:.86rem}
+  .field small{display:block;color:var(--muted);font-size:.72rem;line-height:1.2}
+  .step{display:flex;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .step button{width:34px;height:36px;border:0;background:none;font-size:1.1rem;cursor:pointer;color:var(--gold)}
+  .step button:hover{background:rgba(212,176,122,.1)}
+  .step input{width:62px;height:36px;border:0;background:none;text-align:center;font-size:.95rem;font-weight:500;-moz-appearance:textfield}
+  .step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none}
+  .step em{font-style:normal;color:var(--muted);font-size:.75rem;padding-right:8px}
+  .derived{display:flex;gap:8px;margin-top:10px}
+  .derived div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+  .derived b{display:block;font-family:var(--serif);font-size:1.15rem;font-weight:500}
+  .derived span{color:var(--muted);font-size:.72rem}
+
+  .layouts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .layouts button{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 4px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:.74rem;transition:border-color .2s,transform .2s}
+  .layouts button:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .layouts svg{width:40px;height:30px}
+  .hint{color:var(--muted);font-size:.74rem;margin-top:8px}
+
+  .toggle{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.84rem;color:#d6d0c7;margin-top:6px}
+  .toggle input{appearance:none;width:38px;height:22px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex:none;transition:background .2s}
+  .toggle input::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s}
+  .toggle input:checked{background:var(--gold)}
+  .toggle input:checked::after{left:19px}
+
+  .result{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .result .big{display:flex;align-items:baseline;gap:10px}
+  .result .big b{font-family:var(--serif);font-size:2.4rem;font-weight:500;color:var(--gold);line-height:1}
+  .result .big span{color:var(--muted);font-size:.82rem}
+  .status{margin:12px 0 10px;padding:9px 12px;border-radius:10px;font-size:.84rem;font-weight:500}
+  .status.ok{background:rgba(127,191,138,.13);color:var(--ok)}
+  .status.bad{background:rgba(224,122,106,.13);color:var(--bad)}
+  .status.warn{background:rgba(232,183,92,.13);color:var(--warn)}
+  .rows div{display:flex;justify-content:space-between;padding:5px 0;border-top:1px solid var(--line);font-size:.82rem}
+  .rows div:first-child{border-top:0}
+  .rows span{color:var(--muted)}
+  .checks{list-style:none;margin-top:10px;display:grid;gap:6px}
+  .checks li{font-size:.78rem;padding-left:22px;position:relative;color:#d6d0c7}
+  .checks li::before{position:absolute;left:0;top:0}
+  .checks li.ok::before{content:"✓";color:var(--ok)}
+  .checks li.bad::before{content:"!";color:var(--bad);font-weight:600;left:4px}
+  .checks li.info::before{content:"i";color:var(--gold);font-weight:600;left:4px;font-style:italic;font-family:var(--serif)}
+
+  details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+  details summary{cursor:pointer;font-size:.84rem;font-weight:500}
+  details ul{margin:10px 0 0 16px;display:grid;gap:7px;font-size:.78rem;color:#cfc9bf}
+  details p{font-size:.72rem;color:var(--muted);margin-top:10px}
+
+  .plans select,.plans input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:.85rem;margin-bottom:8px}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.8rem;cursor:pointer;transition:border-color .2s}
+  .btn:hover{border-color:var(--gold)}
+  .btn.gold{background:var(--gold);color:#14161a;border-color:var(--gold);font-weight:500}
+
+  main{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+  .bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.78rem;white-space:nowrap}
+  .chip b{font-weight:500;color:var(--gold)}
+  .bar .sp{flex:1}
+  .icon{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:1rem;display:grid;place-items:center}
+  .icon:hover{border-color:var(--gold)}
+  .icon:disabled{opacity:.35;cursor:default}
+  #wrap{flex:1;min-height:0;overflow:auto;position:relative;background:radial-gradient(circle at 50% 40%,#151a21,#0b0e13 70%);touch-action:none}
+  #plan{display:block;margin:auto;user-select:none;-webkit-user-select:none}
+  #plan .it{cursor:grab}
+  #plan .it.drag{cursor:grabbing}
+
+  .palette{border-top:1px solid var(--line);background:var(--bg2);padding:10px 12px;display:flex;gap:8px;overflow-x:auto}
+  .palette button{flex:none;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 10px 6px 6px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.78rem;text-align:left;line-height:1.2;transition:border-color .2s}
+  .palette button:hover{border-color:var(--gold)}
+  .palette button svg{width:34px;height:34px;flex:none;background:#efe9df;border-radius:8px}
+  .palette button small{display:block;color:var(--muted);font-size:.68rem}
+  .palhead{font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);writing-mode:vertical-rl;transform:rotate(180deg);flex:none;align-self:center;opacity:.8}
+
+  #sel{position:absolute;left:50%;bottom:76px;transform:translateX(-50%);background:rgba(24,29,36,.97);border:1px solid var(--gold2);border-radius:16px;padding:8px;display:none;align-items:center;gap:6px;box-shadow:0 10px 30px rgba(0,0,0,.45);z-index:5;max-width:calc(100% - 20px);flex-wrap:wrap;justify-content:center}
+  #sel.on{display:flex}
+  #sel .name{font-size:.8rem;font-weight:500;padding:0 8px;color:var(--gold)}
+  #sel button{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:.78rem;cursor:pointer;white-space:nowrap}
+  #sel button:hover{border-color:var(--gold)}
+  #sel .grp{display:flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:10px;padding:2px 4px}
+  #sel .grp span{font-size:.74rem;color:var(--muted);padding:0 4px;white-space:nowrap}
+  #sel .grp button{border:0;padding:4px 9px;font-size:.95rem}
+  #sel .del{color:var(--bad)}
+
+  #toast{position:fixed;left:50%;top:132px;transform:translateX(-50%) translateY(-10px);background:var(--gold);color:#14161a;padding:8px 16px;border-radius:999px;font-size:.82rem;font-weight:500;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:20}
+  #toast.on{opacity:1;transform:translateX(-50%)}
+
+  .welcome{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+  .welcome div{background:rgba(24,29,36,.92);border:1px solid var(--line);border-radius:18px;padding:22px 26px;max-width:360px;text-align:center;pointer-events:auto}
+  .welcome h2{font-family:var(--serif);font-weight:400;font-size:1.4rem;margin-bottom:8px}
+  .welcome p{color:var(--muted);font-size:.85rem}
+
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;height:auto}
+    aside{border-right:0;border-bottom:1px solid var(--line);order:2}
+    main{height:78vh;height:78dvh;order:1}
+    .top .title span{display:none}
+    .logo{font-size:1rem}
+    .back{padding:6px 10px;font-size:.75rem}
+    .bar{gap:6px;padding:8px 10px}
+    #cGoal{display:none}
+  }
+  @media print{
+    body{background:#fff;color:#000}
+    header.top,.palette,.bar .icon,#sel,aside .sec:not(.printme),.welcome{display:none!important}
+    .app{display:block;height:auto}
+    aside{border:0;background:#fff}
+    #wrap{background:#fff;overflow:visible}
+    .result,.chip{background:#fff;color:#000;border-color:#999}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="title"><a class="logo" href="index.html">Zuzanna Hamryszczak</a><span>Planer sali</span></div>
+  <a class="back" href="index.html">← Strona główna</a>
+</header>
+
+<div class="app">
+  <aside>
+    <div class="sec">
+      <h3><b>1</b> Sala</h3>
+      <div class="field"><label>Długość<small>od sceny do tyłu</small></label><div class="step"><button data-d="L" data-s="-0.5">−</button><input id="L" type="number" step="0.5" min="3" max="100"><em>m</em><button data-d="L" data-s="0.5">+</button></div></div>
+      <div class="field"><label>Szerokość</label><div class="step"><button data-d="W" data-s="-0.5">−</button><input id="W" type="number" step="0.5" min="3" max="100"><em>m</em><button data-d="W" data-s="0.5">+</button></div></div>
+      <div class="field"><label>Wysokość</label><div class="step"><button data-d="H" data-s="-0.1">−</button><input id="H" type="number" step="0.1" min="2" max="30"><em>m</em><button data-d="H" data-s="0.1">+</button></div></div>
+      <div class="derived">
+        <div><b id="area">0</b><span>m² powierzchni</span></div>
+        <div><b id="vol">0</b><span>m³ kubatury</span></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h3><b>2</b> Goście</h3>
+      <div class="field"><label>Ilu gości planujesz?</label><div class="step"><button data-d="G" data-s="-10">−</button><input id="G" type="number" step="1" min="0" max="20000"><em>os.</em><button data-d="G" data-s="10">+</button></div></div>
+      <label class="toggle"><input type="checkbox" id="stand"> Goście stoją (koktajl) — licz wolną podłogę</label>
+    </div>
+
+    <div class="sec">
+      <h3><b>3</b> Szybkie ustawienie</h3>
+      <div class="layouts" id="layouts"></div>
+      <p class="hint">Klik ustawia całą salę automatycznie. Potem możesz przesuwać, dodawać i usuwać elementy. Coś nie tak? Cofnij ↶.</p>
+    </div>
+
+    <div class="sec printme">
+      <h3><b>4</b> Czy się zmieści?</h3>
+      <div class="result">
+        <div class="big"><b id="cap">0</b><span>osób pomieści<br>ten układ</span></div>
+        <div class="status" id="status"></div>
+        <div class="rows">
+          <div><span>Miejsca siedzące</span><b id="rSeat">0</b></div>
+          <div id="rStandRow"><span>Miejsca stojące (1 m²/os.)</span><b id="rStand">0</b></div>
+          <div><span>Limit przepisów (1 m²/os.)</span><b id="rLimit">0</b></div>
+          <div><span>Wolna podłoga</span><b id="rFree">0 m²</b></div>
+          <div><span>Kubatura na osobę</span><b id="rAir">—</b></div>
+        </div>
+        <ul class="checks" id="checks"></ul>
+      </div>
+    </div>
+
+    <div class="sec">
+      <details>
+        <summary>Ściąga z przepisów</summary>
+        <ul>
+          <li>Liczbę osób w salach konferencyjnych i lokalach gastronomiczno-rozrywkowych liczy się z <b>1 m² na osobę</b> (§ 236 warunków technicznych).</li>
+          <li>Ponad <b>50 osób</b> w sali → co najmniej <b>2 wyjścia ewakuacyjne</b>, oddalone od siebie o min. 5 m (§ 237).</li>
+          <li>Łączna szerokość drzwi wyjściowych: min. <b>0,6 m na 100 osób</b>, a pojedyncze drzwi min. <b>0,9 m</b>.</li>
+          <li>Ponad <b>300 osób</b> → drzwi z urządzeniami przeciwpanicznymi.</li>
+          <li>Ponad <b>200 osób</b> siedzących w rzędach → przejścia min. <b>1,2 m</b> (do 150 os.), dalej +0,6 m na każde 100 osób (§ 261).</li>
+        </ul>
+        <p>To ściąga do planowania, nie ekspertyza. Ostateczny limit osób podaje obiekt w swojej instrukcji bezpieczeństwa pożarowego — bywa niższy niż wynik z metrażu.</p>
+      </details>
+    </div>
+
+    <div class="sec plans">
+      <h3><b>5</b> Moje plany</h3>
+      <input id="pname" placeholder="Nazwa planu, np. Szkolenie — sala A">
+      <select id="plist"></select>
+      <div class="btnrow">
+        <button class="btn gold" id="bSave">Zapisz</button>
+        <button class="btn" id="bLoad">Wczytaj</button>
+        <button class="btn" id="bNew">Nowy</button>
+        <button class="btn" id="bDel">Usuń</button>
+      </div>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn" id="bPng">⬇ Obrazek planu (PNG)</button>
+        <button class="btn" id="bPrint">🖨 Drukuj</button>
+      </div>
+      <p class="hint">Plany zapisują się w tej przeglądarce, na tym urządzeniu.</p>
+    </div>
+  </aside>
+
+  <main>
+    <div class="bar">
+      <span class="chip">Sala <b id="cDim">0 × 0 m</b></span>
+      <span class="chip">Pomieści <b id="cCap">0</b></span>
+      <span class="chip" id="cGoal">Cel <b>0</b></span>
+      <span class="sp"></span>
+      <button class="icon" id="bUndo" title="Cofnij (Ctrl+Z)">↶</button>
+      <button class="icon" id="bRedo" title="Ponów">↷</button>
+      <button class="icon" id="zOut" title="Pomniejsz">−</button>
+      <button class="icon" id="zFit" title="Dopasuj">⤢</button>
+      <button class="icon" id="zIn" title="Powiększ">+</button>
+    </div>
+    <div id="wrap"><svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg><div class="welcome" id="welcome"><div><h2>Zacznij od wymiarów</h2><p>Wpisz długość i szerokość sali w panelu „1. Sala”, a potem wybierz szybkie ustawienie albo dodawaj elementy z katalogu na dole.</p></div></div></div>
+    <div id="sel"></div>
+    <div class="palette" id="palette"><span class="palhead">Katalog</span></div>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+(()=>{
+/* ---------- katalog elementów (wymiary w metrach, łącznie z miejscem na krzesła) ---------- */
+const CH=0.55; // szerokość miejsca na krzesło
+const T={
+  round10:{name:'Stół okrągły Ø180',sub:'do 10 osób',d:1.8,seats:10,min:6,max:12,kind:'round'},
+  round8: {name:'Stół okrągły Ø150',sub:'do 8 osób',d:1.5,seats:8,min:4,max:10,kind:'round'},
+  rect:   {name:'Stół prostokątny',sub:'180×80, 6 osób',kind:'rect',seats:6},
+  row:    {name:'Rząd krzeseł',sub:'teatralnie',kind:'row',seats:10,min:1,max:40},
+  school: {name:'Stół szkolny',sub:'180×60, 3 osoby',kind:'school',seats:3},
+  conf:   {name:'Stół konferencyjny',sub:'180×80, 3 os. z jednej strony',kind:'conf',seats:3},
+  cocktail:{name:'Stolik koktajlowy',sub:'Ø80, stojący',kind:'cocktail',seats:0},
+  stage:  {name:'Scena',sub:'zmienny rozmiar',kind:'box',w:6,h:3,label:'SCENA',fill:'#d9c08f',seats:0,resize:true},
+  dance:  {name:'Parkiet',sub:'zmienny rozmiar',kind:'box',w:5,h:5,label:'PARKIET',fill:'dance',seats:0,resize:true,floor:true},
+  screen: {name:'Ekran',sub:'projekcja',kind:'box',w:3,h:0.3,label:'EKRAN',fill:'#3a4250',seats:0,resize:true},
+  bar:    {name:'Bar',sub:'zmienny rozmiar',kind:'box',w:3,h:0.8,label:'BAR',fill:'#8a6a48',seats:0,resize:true},
+  buffet: {name:'Bufet / catering',sub:'zmienny rozmiar',kind:'box',w:4,h:1,label:'BUFET',fill:'#a7855a',seats:0,resize:true},
+  dj:     {name:'DJ / technika',sub:'2×1 m',kind:'box',w:2,h:1,label:'DJ',fill:'#4a5262',seats:0,resize:true},
+  reg:    {name:'Rejestracja',sub:'recepcja',kind:'box',w:2.4,h:0.8,label:'REJESTRACJA',fill:'#6d7a6a',seats:0,resize:true},
+  pillar: {name:'Słup / przeszkoda',sub:'np. kolumna',kind:'box',w:0.6,h:0.6,label:'',fill:'#7c7368',seats:0,resize:true},
+  door:   {name:'Wyjście',sub:'drzwi ewakuacyjne',kind:'door',w:1.2,h:0.25,seats:0,resize:true}
+};
+const ORDER=['round10','round8','rect','row','school','conf','cocktail','stage','dance','screen','bar','buffet','dj','reg','pillar','door'];
+
+/* ---------- stan ---------- */
+const KEY='planer-sali-v1';
+let S={L:20,W:12,H:3.5,G:100,stand:false,items:[],name:''};
+let sel=null, zoom=1, uid=1, hist=[], fut=[];
+try{ const s=JSON.parse(localStorage.getItem(KEY+'-current')||'null'); if(s&&s.items){ S=Object.assign(S,s); } }catch(e){}
+S.items.forEach(i=>{ i.id=uid++; });
+
+const $=id=>document.getElementById(id);
+const r1=v=>Math.round(v*10)/10, r2=v=>Math.round(v*100)/100;
+const fmt=v=>String(r1(v)).replace('.',',');
+
+/* ---------- geometria ---------- */
+function dims(it){ const t=T[it.type];
+  if(t.kind==='round'){ const d=t.d+2*CH; return [d,d]; }
+  if(t.kind==='row') return [it.n*CH,0.9];
+  if(t.kind==='rect') return [1.8,0.8+2*CH];
+  if(t.kind==='school') return [1.8,1.2];
+  if(t.kind==='conf') return [1.8,0.8+CH];
+  if(t.kind==='cocktail') return [1.4,1.4];
+  return [it.w,it.h];
+}
+function bbox(it){ let [w,h]=dims(it); if(it.rot%180) [w,h]=[h,w]; return {x0:it.x-w/2,y0:it.y-h/2,x1:it.x+w/2,y1:it.y+h/2,w,h}; }
+function seatsOf(it){ const t=T[it.type]; if(t.kind==='round'||t.kind==='row') return it.n; return t.seats||0; }
+function overlap(a,b){ const A=bbox(a),B=bbox(b), e=0.02;
+  if(T[a.type].kind==='round'&&T[b.type].kind==='round'){ const ra=A.w/2-e, rb=B.w/2-e; return Math.hypot(a.x-b.x,a.y-b.y)<ra+rb; }
+  return A.x0<B.x1-e&&B.x0<A.x1-e&&A.y0<B.y1-e&&B.y0<A.y1-e; }
+function outside(it){ const b=bbox(it), e=0.02; return b.x0<-e||b.y0<-e||b.x1>S.W+e||b.y1>S.L+e; }
+function conflicts(){ const bad=new Set(); const its=S.items;
+  for(let i=0;i<its.length;i++){ const a=its[i]; if(outside(a)) bad.add(a.id);
+    for(let j=i+1;j<its.length;j++){ const b=its[j];
+      if(T[a.type].kind==='door'||T[b.type].kind==='door') continue;
+      if((T[a.type].floor&&T[b.type].kind==='box'&&!T[b.type].floor)||(T[b.type].floor&&T[a.type].kind==='box'&&!T[a.type].floor)) continue; // np. DJ na parkiecie
+      if(overlap(a,b)){ bad.add(a.id); bad.add(b.id); } } }
+  return bad; }
+
+/* ---------- historia ---------- */
+function snap(){ return JSON.stringify(S.items.map(({id,...r})=>r)); }
+function push(){ hist.push(snap()); if(hist.length>80) hist.shift(); fut=[]; updUndo(); }
+function restore(json){ S.items=JSON.parse(json).map(i=>({...i,id:uid++})); sel=null; render(); }
+function undo(){ if(!hist.length) return; fut.push(snap()); restore(hist.pop()); updUndo(); }
+function redo(){ if(!fut.length) return; hist.push(snap()); restore(fut.pop()); updUndo(); }
+function updUndo(){ $('bUndo').disabled=!hist.length; $('bRedo').disabled=!fut.length; }
+
+/* ---------- dodawanie ---------- */
+function make(type,x,y,rot=0,extra={}){ const t=T[type]; const it={id:uid++,type,x,y,rot};
+  if(t.kind==='round'||t.kind==='row') it.n=t.seats; if(t.resize){ it.w=t.w; it.h=t.h; } return Object.assign(it,extra); }
+function freeSpot(it){ // szukaj wolnego miejsca od środka sali
+  const [w,h]=dims(it); const cx=S.W/2, cy=S.L/2;
+  for(let r=0;r<Math.max(S.W,S.L);r+=0.5){ for(let a=0;a<16;a++){ const x=r2(cx+Math.cos(a/16*Math.PI*2)*r), y=r2(cy+Math.sin(a/16*Math.PI*2)*r);
+      it.x=Math.round(x*10)/10; it.y=Math.round(y*10)/10; if(!outside(it)&&!S.items.some(o=>T[o.type].kind!=='door'&&overlap(o,it))) return; } }
+  it.x=cx; it.y=cy; }
+function add(type){ push(); const it=make(type,S.W/2,S.L/2);
+  if(type==='door'){ it.x=S.W/2; it.y=S.L-0.125; } else freeSpot(it);
+  S.items.push(it); sel=it.id; render(); hideWelcome(); }
+
+/* ---------- szybkie ustawienia ---------- */
+function clearKeepDoors(){ S.items=S.items.filter(i=>T[i.type].kind==='door'); }
+function tryPlace(it){ if(outside(it)) return false; if(S.items.some(o=>T[o.type].kind!=='door'&&overlap(o,it))) return false; S.items.push(it); return true; }
+function front(){ // scena albo ekran z przodu sali; zwraca y, od którego można stawiać
+  if(S.W>=8&&S.L>=10){ const w=Math.min(8,Math.max(4,r1(S.W*0.45))), h=S.L>=16?3:2.5; S.items.push(make('stage',S.W/2,h/2,0,{w,h})); return h+1.8; }
+  S.items.push(make('screen',S.W/2,0.15,0,{w:Math.min(3,S.W-2),h:0.3})); return 2.2; }
+function blocks(usable,unit,maxPer,aisle){ // podział szerokości na bloki z przejściami
+  for(let k=1;k<20;k++){ const b=(usable-(k-1)*aisle)/k; const n=Math.floor(b/unit+1e-6); if(n<1) return null; if(n<=maxPer) return {k,n,b}; } return null; }
+const LAYOUTS={
+  theatre:{name:'Teatralne',fn(){ clearKeepDoors(); let y=front(); const side=1.2, aisle=1.2; const lim=Math.floor(S.W*S.L+1e-6); let cnt=0; const B=blocks(S.W-2*side,CH,16,aisle); if(!B) return;
+      const total=B.k*B.n*CH+(B.k-1)*aisle; let x0=(S.W-total)/2;
+      while(y+0.9<=S.L-1.5+1e-6&&cnt<lim){ for(let k=0;k<B.k&&cnt<lim;k++){ const w=B.n*CH; const n=Math.min(B.n,lim-cnt); if(tryPlace(make('row',r2(x0+k*(w+aisle)+w/2),r2(y+0.45),0,{n}))) cnt+=n; } y+=0.9; } }},
+  school:{name:'Szkolne',fn(){ clearKeepDoors(); let y=front(); const B=blocks(S.W-2.4,1.85,4,1.2); if(!B) return; const lim=Math.floor(S.W*S.L+1e-6); let cnt=0;
+      const total=B.k*B.n*1.85+(B.k-1)*1.2; let x0=(S.W-total)/2;
+      while(y+1.2<=S.L-1.2+1e-6&&cnt+3<=lim){ for(let k=0;k<B.k;k++) for(let i=0;i<B.n;i++) if(cnt+3<=lim&&tryPlace(make('school',r2(x0+k*(B.n*1.85+1.2)+i*1.85+0.925),r2(y+0.6)))) cnt+=3; y+=1.85; } }},
+  banquet:{name:'Bankiet',fn(){ clearKeepDoors(); if(S.W>=8&&S.L>=12){ S.items.push(make('stage',S.W/2,1.25,0,{w:Math.min(6,r1(S.W*0.4)),h:2.5})); if(S.W*S.L>=160) S.items.push(make('dance',S.W/2,2.5+0.4+2.5,0,{w:5,h:5})); }
+      const p=3.4, d=1.8+2*CH, m=0.4; const nx=Math.floor((S.W-2*m-d)/p)+1, ny=Math.floor((S.L-2*m-d)/p)+1; if(nx<1||ny<1) return;
+      const ox=(S.W-((nx-1)*p+d))/2+d/2, oy=(S.L-((ny-1)*p+d))/2+d/2;
+      for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) tryPlace(make('round10',r2(ox+i*p),r2(oy+j*p))); }},
+  cocktail:{name:'Koktajl',fn(){ clearKeepDoors(); S.items.push(make('bar',S.W/2,S.L-0.6,0,{w:Math.min(5,S.W-2),h:0.8}));
+      const p=3.5; const nx=Math.max(1,Math.floor((S.W-1)/p)), ny=Math.max(1,Math.floor((S.L-3)/p)); const ox=(S.W-(nx-1)*p)/2, oy=1.5+(S.L-3-(ny-1)*p)/2;
+      for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) tryPlace(make('cocktail',r2(ox+i*p),r2(oy+j*p))); S.stand=true; $('stand').checked=true; }},
+  ushape:{name:'Podkowa (U)',fn(){ clearKeepDoors(); S.items.push(make('screen',S.W/2,0.15,0,{w:Math.min(3,S.W-2),h:0.3}));
+      const m=0.8, dd=0.8+CH, top=2.6, bottomY=S.L-m-dd/2; const armLen=bottomY-dd/2-top; const n=Math.floor(armLen/1.8+1e-6);
+      for(let i=0;i<n;i++){ tryPlace(make('conf',r2(m+dd/2),r2(top+0.9+i*1.8),90)); tryPlace(make('conf',r2(S.W-m-dd/2),r2(top+0.9+i*1.8),270)); }
+      const inner=S.W-2*(m+dd); const nb=Math.floor(inner/1.8+1e-6); const ox=(S.W-nb*1.8)/2;
+      for(let i=0;i<nb;i++) tryPlace(make('conf',r2(ox+0.9+i*1.8),r2(bottomY),180)); }},
+  empty:{name:'Pusta sala',fn(){ clearKeepDoors(); }}
+};
+const LICONS={
+  theatre:'<rect x="12" y="2" width="16" height="5" rx="1" fill="#d4b07a"/>'+[10,15,20,25].map(y=>[6,11,16,24,29,34].map(x=>`<rect x="${x-1.6}" y="${y}" width="3.2" height="3" rx=".8" fill="#cfc9bf"/>`).join('')).join(''),
+  school:'<rect x="12" y="2" width="16" height="2" rx="1" fill="#d4b07a"/>'+[8,15,22].map(y=>[4,22].map(x=>`<rect x="${x}" y="${y}" width="14" height="3" rx="1" fill="#cfc9bf"/>`).join('')).join(''),
+  banquet:[[10,10],[30,10],[10,23],[30,23],[20,16.5]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="#cfc9bf"/>`).join(''),
+  cocktail:[[8,8],[20,8],[32,8],[8,18],[20,18],[32,18]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="#cfc9bf"/>`).join('')+'<rect x="8" y="25" width="24" height="3" rx="1" fill="#d4b07a"/>',
+  ushape:'<rect x="12" y="2" width="16" height="2" rx="1" fill="#d4b07a"/><path d="M6 8 V26 H34 V8" fill="none" stroke="#cfc9bf" stroke-width="4"/>',
+  empty:'<rect x="4" y="3" width="32" height="24" rx="2" fill="none" stroke="#cfc9bf" stroke-width="1.5" stroke-dasharray="3 2"/>'
+};
+function applyLayout(k){ push(); if(k!=='cocktail'&&k!=='empty'){ S.stand=false; $('stand').checked=false; } LAYOUTS[k].fn(); sel=null; render(); hideWelcome(); fit();
+  const c=calc(); toast(`${LAYOUTS[k].name}: ${Math.min(c.cap,c.limit)} osób · możesz cofnąć ↶`); }
+
+/* ---------- obliczenia ---------- */
+function calc(){ const area=S.W*S.L; let seats=0, used=0;
+  for(const it of S.items){ seats+=seatsOf(it); const t=T[it.type]; if(t.kind==='door'||t.floor) continue; const b=bbox(it);
+    used+= t.kind==='round'||t.kind==='cocktail' ? Math.PI*(b.w/2)**2 : b.w*b.h; }
+  const free=Math.max(0,area-used); const stand=S.stand?Math.floor(free/1+1e-6):0; const limit=Math.floor(area+1e-6);
+  return {area,seats,free,stand,limit,cap:seats+stand,vol:area*S.H}; }
+
+/* ---------- rysowanie ---------- */
+const svg=$('plan'); const NS='http://www.w3.org/2000/svg';
+function chair(x,y,rot=0){ return `<rect x="${x-0.21}" y="${y-0.2}" width="0.42" height="0.4" rx="0.08" fill="#6b5d4c" transform="rotate(${rot} ${x} ${y})"/>`; }
+function shape(it){ const t=T[it.type]; const [w,h]=dims(it); let s='';
+  const tbl='#f7f2ea', tblS='#8f7f6a';
+  switch(t.kind){
+    case 'round': { const r=t.d/2; for(let k=0;k<it.n;k++){ const a=k/it.n*Math.PI*2-Math.PI/2; const cx=Math.cos(a)*(r+0.28), cy=Math.sin(a)*(r+0.28); s+=chair(cx,cy,a*180/Math.PI+90); }
+      s+=`<circle r="${r}" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/><text y="0.14" text-anchor="middle" font-size="0.4" fill="#6b5d4c" font-weight="600">${it.n}</text>`; break; }
+    case 'row': for(let i=0;i<it.n;i++) s+=chair(-w/2+CH/2+i*CH,0.05); s+=`<rect x="${-w/2}" y="-0.45" width="${w}" height="0.9" fill="transparent"/>`; break;
+    case 'rect': s+=[-0.6,0,0.6].map(x=>chair(x,-0.68,0)+chair(x,0.68,180)).join('')+`<rect x="-0.9" y="-0.4" width="1.8" height="0.8" rx="0.05" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
+    case 'school': s+=[-0.6,0,0.6].map(x=>chair(x,0.32,180)).join('')+`<rect x="-0.9" y="-0.6" width="1.8" height="0.6" rx="0.05" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
+    case 'conf': s+=[-0.6,0,0.6].map(x=>chair(x,0.4,180)).join('')+`<rect x="-0.9" y="-0.675" width="1.8" height="0.8" rx="0.05" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
+    case 'cocktail': s+=`<circle r="0.7" fill="rgba(107,93,76,.08)" stroke="#a39581" stroke-width="0.03" stroke-dasharray="0.12 0.1"/><circle r="0.4" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
+    case 'door': s+=`<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="#3fae6a"/>`+
+      `<text y="${-h/2-0.15}" text-anchor="middle" font-size="0.32" fill="#2f8a52" font-weight="600">WYJŚCIE ${fmt(w)} m</text>`; break;
+    default: { const fill=t.fill==='dance'?'url(#dance)':t.fill; s+=`<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="0.06" fill="${fill}" stroke="rgba(0,0,0,.25)" stroke-width="0.03"/>`;
+      if(t.label&&Math.min(w,h)>=0.5){ const fs=Math.min(0.42,Math.max(0.22,Math.min(w/(t.label.length*0.75),h*0.45))); s+=`<text y="${fs*0.35}" text-anchor="middle" font-size="${fs}" fill="${t.fill==='dance'||t.fill.startsWith('#d')?'#4a3a2c':'#fff'}" font-weight="600" letter-spacing="0.04">${t.label}</text>`; }
+      if(t.resize&&Math.min(w,h)>=1.2) s+=`<text y="${h/2-0.18}" text-anchor="middle" font-size="0.24" fill="${t.fill==='dance'||t.fill.startsWith('#d')?'#6b5d4c':'rgba(255,255,255,.75)'}">${fmt(w)} × ${fmt(h)} m</text>`; }
+  }
+  return s; }
+function render(){
+  const bad=conflicts(); const pad=1.2;
+  svg.setAttribute('viewBox',`${-pad} ${-pad} ${S.W+2*pad} ${S.L+2*pad}`);
+  let g=`<defs><pattern id="dance" width="1" height="1" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="#e8dcc4"/><rect width="0.5" height="0.5" fill="#d8c7a6"/><rect x="0.5" y="0.5" width="0.5" height="0.5" fill="#d8c7a6"/></pattern>
+    <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="rgba(90,74,58,.13)" stroke-width="0.02"/></pattern></defs>`;
+  g+=`<rect x="-0.15" y="-0.15" width="${S.W+0.3}" height="${S.L+0.3}" rx="0.1" fill="#3a332b"/>`;
+  g+=`<rect width="${S.W}" height="${S.L}" fill="#f1ebe1"/><rect width="${S.W}" height="${S.L}" fill="url(#grid)"/>`;
+  for(let x=5;x<S.W;x+=5) g+=`<line x1="${x}" y1="0" x2="${x}" y2="${S.L}" stroke="rgba(90,74,58,.22)" stroke-width="0.025"/>`;
+  for(let y=5;y<S.L;y+=5) g+=`<line x1="0" y1="${y}" x2="${S.W}" y2="${y}" stroke="rgba(90,74,58,.22)" stroke-width="0.025"/>`;
+  // wymiary
+  g+=`<text x="${S.W/2}" y="-0.45" text-anchor="middle" font-size="0.42" fill="#a8a39b">${fmt(S.W)} m</text>`;
+  g+=`<text x="-0.45" y="${S.L/2}" text-anchor="middle" font-size="0.42" fill="#a8a39b" transform="rotate(-90 -0.45 ${S.L/2})">${fmt(S.L)} m</text>`;
+  g+=`<text x="${S.W/2}" y="${S.L+0.75}" text-anchor="middle" font-size="0.3" fill="#6f6a63" letter-spacing="0.08">TYŁ SALI</text>`;
+  const order=[...S.items].sort((a,b)=>(T[b.type].floor?1:0)-(T[a.type].floor?1:0));
+  for(const it of order){ const isSel=it.id===sel, isBad=bad.has(it.id); const b=bbox(it);
+    g+=`<g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${it.rot})">${shape(it)}</g>`;
+    if(isBad) g+=`<rect x="${b.x0-0.05}" y="${b.y0-0.05}" width="${b.w+0.1}" height="${b.h+0.1}" rx="0.1" fill="rgba(224,122,106,.14)" stroke="#e07a6a" stroke-width="0.06" pointer-events="none"/>`;
+    if(isSel) g+=`<rect x="${b.x0-0.1}" y="${b.y0-0.1}" width="${b.w+0.2}" height="${b.h+0.2}" rx="0.12" fill="none" stroke="#d4b07a" stroke-width="0.07" stroke-dasharray="0.25 0.12" pointer-events="none"/>`;
+  }
+  svg.innerHTML=g; sizeSvg(); stats(bad); selBar(); save(); }
+function sizeSvg(){ const wr=$('wrap'); const pad=1.2; const vw=S.W+2*pad, vh=S.L+2*pad; const W=wr.clientWidth-24, H=wr.clientHeight-24;
+  const base=Math.max(4,Math.min(W/vw,H/vh)); const px=base*zoom; svg.setAttribute('width',vw*px); svg.setAttribute('height',vh*px);
+  svg.style.marginTop=Math.max(12,(wr.clientHeight-vh*px)/2)+'px'; }
+function fit(){ zoom=1; sizeSvg(); }
+
+/* ---------- statystyki ---------- */
+function stats(bad){ const c=calc(); const G=+S.G||0;
+  $('area').textContent=fmt(c.area); $('vol').textContent=Math.round(c.vol);
+  const raw=c.seats+c.stand, cap=Math.min(raw,c.limit);
+  $('cap').textContent=cap; $('rSeat').textContent=c.seats; $('rStand').textContent=c.stand; $('rStandRow').style.display=S.stand?'':'none';
+  $('rLimit').textContent=c.limit; $('rFree').textContent=fmt(c.free)+' m²';
+  const ppl=G||Math.min(c.seats+c.stand,c.limit); $('rAir').textContent=ppl?fmt(c.vol/ppl)+' m³':'—';
+  $('cDim').textContent=`${fmt(S.W)} × ${fmt(S.L)} m`; $('cCap').textContent=cap; $('cGoal').innerHTML=`Cel <b>${G}</b>`;
+  const st=$('status');
+  if(!G){ st.className='status warn'; st.textContent='Wpisz planowaną liczbę gości, żeby sprawdzić, czy się zmieszczą.'; }
+  else if(G>c.limit){ st.className='status bad'; st.textContent=`Za dużo osób na ten metraż: limit to ${c.limit} (1 m²/os.), brakuje ${fmt(G-c.limit)} m².`; }
+  else if(cap>=G){ st.className='status ok'; st.textContent=`Zmieszczą się! Zostaje ${cap-G} wolnych miejsc.`; }
+  else { st.className='status bad'; st.textContent=`Brakuje ${G-cap} miejsc w tym układzie.`; }
+  $('cGoal').style.borderColor=!G?'':(cap>=G&&G<=c.limit?'var(--ok)':'var(--bad)');
+  // kontrole
+  const L=[]; const doors=S.items.filter(i=>T[i.type].kind==='door'); const P=G||cap;
+  if(raw>c.limit) L.push(['bad',`Ustawiono ${raw} miejsc, ale przepisy pozwalają na ${c.limit} osób (1 m²/os.) — wynik ograniczono do limitu.`]);
+  if(bad.size) L.push(['bad',`${bad.size} ${bad.size===1?'element nachodzi':'elementy nachodzą'} na inne albo wystają poza salę (zaznaczone na czerwono).`]);
+  if(P>0){ const needN=P>50?2:1; const needW=Math.max(0.9,0.6*P/100); const totW=doors.reduce((a,d)=>a+d.w,0); const minDoor=doors.length?Math.min(...doors.map(d=>d.w)):0;
+    if(!doors.length) L.push(['info',`Dodaj wyjścia z katalogu (Wyjście), żeby sprawdzić ewakuację. Dla ${P} osób: min. ${needN} ${needN>1?'wyjścia':'wyjście'}, łącznie ${fmt(needW)} m drzwi.`]);
+    else { L.push([doors.length>=needN?'ok':'bad',`Wyjścia: ${doors.length} z wymaganych ${needN}${P>50?' (ponad 50 osób)':''}.`]);
+      L.push([totW+1e-6>=needW&&minDoor>=0.9-1e-6?'ok':'bad',`Szerokość drzwi: ${fmt(totW)} m z wymaganych ${fmt(needW)} m (0,6 m / 100 os., każde min. 0,9 m).`]);
+      if(doors.length>=2){ let far=0; for(let i=0;i<doors.length;i++) for(let j=i+1;j<doors.length;j++) far=Math.max(far,Math.hypot(doors[i].x-doors[j].x,doors[i].y-doors[j].y)); L.push([far>=5?'ok':'bad',`Wyjścia oddalone od siebie o ${fmt(far)} m (min. 5 m).`]); } }
+    if(P>300) L.push(['info','Ponad 300 osób: drzwi muszą mieć urządzenia przeciwpaniczne.']); }
+  const rowSeats=S.items.filter(i=>i.type==='row').reduce((a,i)=>a+i.n,0);
+  if(rowSeats>200) L.push(['info',`Ponad 200 miejsc w rzędach: każde przejście min. 1,2 m, jeśli prowadzi do niego do 150 osób, i +0,6 m na każde kolejne 100 (§ 261).`]);
+  if(S.H<2.8&&S.items.some(i=>i.type==='stage')) L.push(['info','Niska sala — sprawdź, czy nad sceną zostanie miejsce na ludzi i oświetlenie.']);
+  $('checks').innerHTML=L.map(([c,t])=>`<li class="${c}">${t}</li>`).join(''); }
+
+/* ---------- pasek zaznaczenia ---------- */
+function selBar(){ const el=$('sel'); const it=S.items.find(i=>i.id===sel); if(!it){ el.classList.remove('on'); return; }
+  const t=T[it.type]; let h=`<span class="name">${t.name}</span>`;
+  if(t.kind==='round'||t.kind==='row') h+=`<div class="grp"><button data-a="n-">−</button><span>${it.n} ${t.kind==='row'?'krzeseł':'osób'}</span><button data-a="n+">+</button></div>`;
+  if(t.resize){ h+=`<div class="grp"><button data-a="w-">−</button><span>szer. ${fmt(it.w)}</span><button data-a="w+">+</button></div>`;
+    if(t.kind!=='door') h+=`<div class="grp"><button data-a="h-">−</button><span>gł. ${fmt(it.h)}</span><button data-a="h+">+</button></div>`; }
+  if(t.kind!=='round'&&t.kind!=='cocktail'&&t.kind!=='door') h+=`<button data-a="rot">⟳ Obróć</button>`;
+  h+=`<button data-a="dup">⧉ Kopiuj</button><button data-a="del" class="del">✕ Usuń</button>`;
+  el.innerHTML=h; el.classList.add('on'); }
+$('sel').addEventListener('click',e=>{ const a=e.target.closest('button')?.dataset.a; if(!a) return; const it=S.items.find(i=>i.id===sel); if(!it) return; const t=T[it.type];
+  push();
+  if(a==='n-') it.n=Math.max(t.min,it.n-1); if(a==='n+') it.n=Math.min(t.max,it.n+1);
+  const stp=it.type==='door'?0.1:(it.type==='pillar'?0.1:0.5);
+  if(a==='w-') it.w=r2(Math.max(it.type==='door'?0.8:0.3,it.w-stp)); if(a==='w+') it.w=r2(Math.min(40,it.w+stp));
+  if(a==='h-') it.h=r2(Math.max(0.2,it.h-stp)); if(a==='h+') it.h=r2(Math.min(40,it.h+stp));
+  if(a==='rot') it.rot=(it.rot+90)%360;
+  if(a==='dup'){ const c={...it,id:uid++}; const b=bbox(it); c.x=r2(it.x+(b.w<=b.h?b.w:0)+0.0); c.y=r2(it.y+(b.w>b.h?b.h:0)); if(outside(c)) freeSpot(c); S.items.push(c); sel=c.id; }
+  if(a==='del'){ S.items=S.items.filter(i=>i.id!==sel); sel=null; }
+  render(); });
+
+/* ---------- przeciąganie ---------- */
+function pt(e){ const p=svg.createSVGPoint(); p.x=e.clientX; p.y=e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+let drag=null;
+svg.addEventListener('pointerdown',e=>{ const g=e.target.closest('.it'); if(!g){ sel=null; render(); return; }
+  const it=S.items.find(i=>i.id===+g.dataset.id); sel=it.id; const p=pt(e);
+  drag={it,dx:p.x-it.x,dy:p.y-it.y,moved:false,before:snap()}; svg.setPointerCapture(e.pointerId); render(); e.preventDefault(); });
+svg.addEventListener('pointermove',e=>{ if(!drag) return; const p=pt(e); const it=drag.it; let x=Math.round((p.x-drag.dx)*10)/10, y=Math.round((p.y-drag.dy)*10)/10;
+  if(T[it.type].kind==='door'){ const d=[[y,'t'],[S.L-y,'b'],[x,'l'],[S.W-x,'r']].sort((a,b)=>a[0]-b[0])[0][1]; const hh=it.h/2;
+    if(d==='t'){ y=hh; it.rot=0; } if(d==='b'){ y=S.L-hh; it.rot=0; } if(d==='l'){ x=hh; it.rot=90; } if(d==='r'){ x=S.W-hh; it.rot=90; }
+    if(it.rot===0) x=Math.min(S.W-it.w/2,Math.max(it.w/2,x)); else y=Math.min(S.L-it.w/2,Math.max(it.w/2,y)); }
+  else { const b=bbox(it); x=Math.min(S.W+b.w/2-0.3,Math.max(-b.w/2+0.3,x)); y=Math.min(S.L+b.h/2-0.3,Math.max(-b.h/2+0.3,y)); }
+  if(x!==it.x||y!==it.y){ it.x=x; it.y=y; drag.moved=true; render(); } });
+function endDrag(){ if(drag&&drag.moved){ hist.push(drag.before); if(hist.length>80) hist.shift(); fut=[]; updUndo(); } drag=null; }
+svg.addEventListener('pointerup',endDrag); svg.addEventListener('pointercancel',endDrag);
+
+/* ---------- klawiatura ---------- */
+addEventListener('keydown',e=>{ if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT') return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey?redo():undo(); return; }
+  const it=S.items.find(i=>i.id===sel); if(!it) return;
+  if(e.key==='Delete'||e.key==='Backspace'){ push(); S.items=S.items.filter(i=>i.id!==sel); sel=null; render(); e.preventDefault(); }
+  if(e.key==='r'||e.key==='R'){ if(T[it.type].kind!=='door'){ push(); it.rot=(it.rot+90)%360; render(); } }
+  const mv={ArrowLeft:[-0.1,0],ArrowRight:[0.1,0],ArrowUp:[0,-0.1],ArrowDown:[0,0.1]}[e.key];
+  if(mv){ push(); const k=e.shiftKey?5:1; it.x=r2(it.x+mv[0]*k); it.y=r2(it.y+mv[1]*k); render(); e.preventDefault(); } });
+
+/* ---------- wymiary i goście ---------- */
+function setDim(k,v){ const lim={L:[3,100],W:[3,100],H:[2,30],G:[0,20000]}[k]; v=Math.min(lim[1],Math.max(lim[0],+v||lim[0])); S[k]=k==='G'?Math.round(v):r1(v); $(k).value=S[k]; render(); if(k!=='G') fit(); }
+['L','W','H','G'].forEach(k=>{ $(k).value=S[k]; $(k).addEventListener('change',e=>{ setDim(k,e.target.value); hideWelcome(); }); });
+document.querySelectorAll('.step button').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.d; setDim(k,S[k]+(+b.dataset.s)); hideWelcome(); }));
+$('stand').checked=S.stand; $('stand').addEventListener('change',e=>{ S.stand=e.target.checked; render(); });
+
+/* ---------- katalog i układy ---------- */
+for(const k of Object.keys(LAYOUTS)){ const b=document.createElement('button'); b.innerHTML=`<svg viewBox="0 0 40 30">${LICONS[k]}</svg>${LAYOUTS[k].name}`; b.onclick=()=>applyLayout(k); $('layouts').appendChild(b); }
+for(const k of ORDER){ const t=T[k]; const it=make(k,0,0); const [w,h]=dims(it); const m=Math.max(w,h)*1.15+0.2;
+  const b=document.createElement('button'); b.innerHTML=`<svg viewBox="${-m/2} ${-m/2} ${m} ${m}">${shape(it)}</svg><span>${t.name}<small>${t.sub}</small></span>`; b.onclick=()=>add(k); $('palette').appendChild(b); }
+
+/* ---------- zoom ---------- */
+$('zIn').onclick=()=>{ zoom=Math.min(5,zoom*1.3); sizeSvg(); }; $('zOut').onclick=()=>{ zoom=Math.max(0.5,zoom/1.3); sizeSvg(); }; $('zFit').onclick=fit;
+$('bUndo').onclick=undo; $('bRedo').onclick=redo;
+addEventListener('resize',sizeSvg);
+
+/* ---------- zapis planów ---------- */
+function save(){ try{ localStorage.setItem(KEY+'-current',JSON.stringify({...S,items:S.items.map(({id,...r})=>r)})); }catch(e){} }
+function plans(){ try{ return JSON.parse(localStorage.getItem(KEY+'-plans')||'{}'); }catch(e){ return {}; } }
+function listPlans(){ const p=plans(); const names=Object.keys(p).sort(); $('plist').innerHTML=names.length?names.map(n=>`<option>${n.replace(/</g,'&lt;')}</option>`).join(''):'<option value="">— brak zapisanych planów —</option>'; if(S.name&&p[S.name]) $('plist').value=S.name; }
+$('pname').value=S.name||'';
+$('bSave').onclick=()=>{ const n=$('pname').value.trim()||`Plan ${new Date().toLocaleDateString('pl-PL')}`; S.name=n; $('pname').value=n; const p=plans(); p[n]={...S,items:S.items.map(({id,...r})=>r)}; try{ localStorage.setItem(KEY+'-plans',JSON.stringify(p)); toast('Zapisano: '+n); }catch(e){ toast('Nie udało się zapisać w tej przeglądarce'); } listPlans(); save(); };
+$('bLoad').onclick=()=>{ const n=$('plist').value; const p=plans()[n]; if(!p) return; push(); S={...S,...p,items:p.items.map(i=>({...i,id:uid++}))}; ['L','W','H','G'].forEach(k=>$(k).value=S[k]); $('stand').checked=!!S.stand; $('pname').value=n; sel=null; render(); fit(); hideWelcome(); toast('Wczytano: '+n); };
+$('bNew').onclick=()=>{ push(); S.items=[]; S.name=''; $('pname').value=''; sel=null; render(); toast('Nowy, pusty plan · możesz cofnąć ↶'); };
+let delArm=0; $('bDel').onclick=()=>{ const n=$('plist').value; if(!n) return; if(Date.now()-delArm>2500){ delArm=Date.now(); $('bDel').textContent='Na pewno?'; setTimeout(()=>$('bDel').textContent='Usuń',2500); return; }
+  const p=plans(); delete p[n]; try{ localStorage.setItem(KEY+'-plans',JSON.stringify(p)); }catch(e){} $('bDel').textContent='Usuń'; listPlans(); toast('Usunięto: '+n); };
+listPlans();
+
+/* ---------- eksport PNG i druk ---------- */
+$('bPng').onclick=()=>{ const c=calc(); const pad=1.2, vw=S.W+2*pad, vh=S.L+2*pad; const px=Math.min(60,2400/Math.max(vw,vh)); const head=110;
+  const clone=svg.cloneNode(true); clone.setAttribute('width',vw*px); clone.setAttribute('height',vh*px); clone.querySelectorAll('[stroke-dasharray="0.25 0.12"]').forEach(n=>n.remove());
+  const data='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(clone)); const img=new Image();
+  img.onload=()=>{ const cv=document.createElement('canvas'); cv.width=vw*px; cv.height=vh*px+head; const g=cv.getContext('2d');
+    g.fillStyle='#0b0e13'; g.fillRect(0,0,cv.width,cv.height); g.drawImage(img,0,head);
+    g.fillStyle='#d4b07a'; g.font='500 30px Lora, Georgia, serif'; g.fillText(S.name||'Plan sali',28,46);
+    g.fillStyle='#d6d0c7'; g.font='18px Poppins, sans-serif'; g.fillText(`Sala ${fmt(S.W)} × ${fmt(S.L)} × ${fmt(S.H)} m · ${fmt(c.area)} m² · pomieści ${Math.min(c.seats+c.stand,c.limit)} os. · limit 1 m²/os.: ${c.limit}${S.G?' · goście: '+S.G:''}`,28,82);
+    cv.toBlob(b=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=(S.name||'plan-sali').replace(/[^\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ -]/g,'')+'.png'; document.body.appendChild(a); a.click(); a.remove(); },'image/png'); };
+  img.src=data; };
+$('bPrint').onclick=()=>window.print();
+
+/* ---------- drobiazgi ---------- */
+let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),2600); }
+function hideWelcome(){ $('welcome').style.display='none'; }
+if(S.items.length) hideWelcome();
+updUndo(); render(); requestAnimationFrame(fit);
+})();
+</script>
+</body>
+</html>

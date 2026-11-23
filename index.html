@@ -39,7 +39,11 @@
   .lang{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
   .lang button{background:none;border:0;color:var(--muted);font:500 .75rem var(--sans);padding:5px 11px;cursor:pointer;letter-spacing:.06em}
   .lang button.on{background:var(--gold);color:#14161a}
-  @media (max-width:760px){.menu a{display:none}}
+  .menu a.plan-link{color:var(--gold);border:1px solid rgba(212,176,122,.45);padding:5px 12px;border-radius:999px}
+  .menu a.plan-link:hover{background:rgba(212,176,122,.1);color:var(--gold)}
+  .menu a.plan-link{white-space:nowrap}
+  @media (max-width:760px){.menu a:not(.keep){display:none}.menu{gap:8px}.logo{font-size:1rem}.menu a.plan-link{font-size:.74rem;padding:4px 10px}}
+  @media (max-width:380px){.logo{font-size:.9rem}}
 
   /* hero */
   .hero{min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:40px;padding-top:70px;position:relative}
@@ -157,6 +161,7 @@
       <a href="#oferta"><span lang="pl">Co robię</span><span lang="en">Services</span></a>
       <a href="#doswiadczenie"><span lang="pl">Doświadczenie</span><span lang="en">Experience</span></a>
       <a href="#kontakt"><span lang="pl">Kontakt</span><span lang="en">Contact</span></a>
+      <a href="planer.html" class="keep plan-link"><span lang="pl">Planer sali</span><span lang="en">Room planner</span></a>
       <div class="lang"><button data-set="pl" class="on">PL</button><button data-set="en">EN</button></div>
     </div>
   </div>
