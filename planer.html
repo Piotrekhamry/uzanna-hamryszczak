@@ -82,6 +82,14 @@
   details ul{margin:10px 0 0 16px;display:grid;gap:7px;font-size:.78rem;color:#cfc9bf}
   details p{font-size:.72rem;color:var(--muted);margin-top:10px}
 
+  textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;font:inherit;font-size:.82rem;color:var(--text);resize:vertical}
+  .seating{margin-top:12px;display:grid;gap:6px}
+  .seating .t{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:.78rem;cursor:pointer}
+  .seating .t:hover{border-color:var(--gold)}
+  .seating .t b{color:var(--gold);font-weight:500;margin-right:6px}
+  .seating .t small{color:var(--muted);float:right}
+  .seating .t div{color:#cfc9bf;margin-top:2px}
+  .seating .out{color:var(--bad);font-size:.78rem}
   .plans select,.plans input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:.85rem;margin-bottom:8px}
   .btnrow{display:flex;gap:8px;flex-wrap:wrap}
   .btn{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.8rem;cursor:pointer;transition:border-color .2s}
@@ -131,6 +139,7 @@
   #sel .grp span{font-size:.74rem;color:var(--muted);padding:0 4px;white-space:nowrap}
   #sel .grp button{border:0;padding:4px 9px;font-size:.95rem}
   #sel .del{color:var(--bad)}
+  #sel .who{flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 12px;padding:6px 8px 2px;border-top:1px solid var(--line);margin-top:2px;font-size:.74rem;color:#d6d0c7;max-height:90px;overflow:auto}
 
   #toast{position:fixed;left:50%;top:132px;transform:translateX(-50%) translateY(-10px);background:var(--gold);color:#14161a;padding:8px 16px;border-radius:999px;font-size:.82rem;font-weight:500;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:20}
   #toast.on{opacity:1;transform:translateX(-50%)}
@@ -209,6 +218,18 @@
       </div>
     </div>
 
+    <div class="sec printme">
+      <h3><b>5</b> Rozsadzenie gości</h3>
+      <textarea id="glist" rows="6" placeholder="Wklej listę gości — jedna osoba w linii.&#10;Anna Kowalska&#10;Jan Nowak; 3   ← przy stole nr 3&#10;Ewa Zielińska; R2   ← w rzędzie 2"></textarea>
+      <p class="hint" id="gcount">Stoły numerują się same przy ustawieniu sali. Kto nie ma numeru, siada przy kolejnym wolnym miejscu.</p>
+      <div class="btnrow" style="margin-top:8px">
+        <button class="btn" id="bRenum">№ Numeruj od nowa</button>
+        <button class="btn" id="bGset">Ustaw liczbę gości z listy</button>
+        <button class="btn" id="bCsv">⬇ Lista miejsc (CSV)</button>
+      </div>
+      <div class="seating" id="seating"></div>
+    </div>
+
     <div class="sec">
       <details>
         <summary>Ściąga z przepisów</summary>
@@ -224,7 +245,7 @@
     </div>
 
     <div class="sec plans">
-      <h3><b>5</b> Moje plany</h3>
+      <h3><b>6</b> Moje plany</h3>
       <input id="pname" placeholder="Nazwa planu, np. Szkolenie — sala A">
       <select id="plist"></select>
       <div class="btnrow">
@@ -256,7 +277,7 @@
     </div>
     <div id="wrap"><svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg><div class="welcome" id="welcome"><div><h2>Zacznij od wymiarów</h2><p>Wpisz długość i szerokość sali w panelu „1. Sala”, a potem wybierz szybkie ustawienie albo dodawaj elementy z katalogu na dole.</p></div></div></div>
     <div id="v3"><canvas id="c3"></canvas>
-      <div class="v3bar"><button data-v="persp" class="on">Perspektywa</button><button data-v="guest">Z miejsca gościa</button><button data-v="top">Z góry</button><label class="toggle"><input type="checkbox" id="ppl" checked> Goście</label></div>
+      <div class="v3bar"><button data-v="persp" class="on">Perspektywa</button><button data-v="guest">Z miejsca gościa</button><button data-v="top">Z góry</button><label class="toggle"><input type="checkbox" id="ppl" checked> Goście</label><label class="toggle"><input type="checkbox" id="nums" checked> Numery</label></div>
       <div class="v3hint" id="v3hint">Przeciągnij = obrót · kółko / dwa palce = zoom · zmiany w planie 2D</div>
       <div class="v3load" id="v3load">Ładuję widok 3D…</div>
     </div>
@@ -285,17 +306,21 @@ const T={
   buffet: {name:'Bufet / catering',sub:'zmienny rozmiar',kind:'box',w:4,h:1,label:'BUFET',fill:'#a7855a',seats:0,resize:true},
   dj:     {name:'DJ / technika',sub:'2×1 m',kind:'box',w:2,h:1,label:'DJ',fill:'#4a5262',seats:0,resize:true},
   reg:    {name:'Rejestracja',sub:'recepcja',kind:'box',w:2.4,h:0.8,label:'REJESTRACJA',fill:'#6d7a6a',seats:0,resize:true},
-  pillar: {name:'Słup / przeszkoda',sub:'np. kolumna',kind:'box',w:0.6,h:0.6,label:'',fill:'#7c7368',seats:0,resize:true},
-  door:   {name:'Wyjście',sub:'drzwi ewakuacyjne',kind:'door',w:1.2,h:0.25,seats:0,resize:true}
+  pillar: {name:'Kolumna / słup',sub:'stały element sali',kind:'box',w:0.6,h:0.6,label:'',fill:'#7c7368',seats:0,resize:true,pin:true},
+  zone:   {name:'Strefa',sub:'kawa, bufet, szatnia…',kind:'zone',w:4,h:3,seats:0,resize:true,pin:true},
+  door:   {name:'Wejście / wyjście',sub:'drzwi, stały element',kind:'door',w:1.2,h:0.25,seats:0,resize:true,pin:true}
 };
-const ORDER=['round10','round8','rect','row','school','conf','cocktail','stage','dance','screen','bar','buffet','dj','reg','pillar','door'];
+const ORDER=['door','pillar','zone','round10','round8','rect','row','school','conf','cocktail','stage','dance','screen','bar','buffet','dj','reg'];
+const ZONES=['KAWA','BUFET','SZATNIA','REJESTRACJA','STREFA PARTNERÓW','TECHNIKA','WOLNE PRZEJŚCIE'];
+const TABLED=new Set(['round','rect','school','conf','row']);
 
 /* ---------- stan ---------- */
 const KEY='planer-sali-v1';
-let S={L:20,W:12,H:3.5,G:100,stand:false,items:[],name:''};
+let S={L:20,W:12,H:3.5,G:100,stand:false,items:[],name:'',guests:''};
 let sel=null, zoom=1, uid=1, hist=[], fut=[];
 try{ const s=JSON.parse(localStorage.getItem(KEY+'-current')||'null'); if(s&&s.items){ S=Object.assign(S,s); } }catch(e){}
-S.items.forEach(i=>{ i.id=uid++; });
+S.items.forEach(i=>{ i.id=uid++; if(i.pin===undefined&&T[i.type]&&T[i.type].pin) i.pin=true; });
+S.items=S.items.filter(i=>T[i.type]);
 
 const $=id=>document.getElementById(id);
 const r1=v=>Math.round(v*10)/10, r2=v=>Math.round(v*100)/100;
@@ -316,14 +341,33 @@ function seatsOf(it){ const t=T[it.type]; if(t.kind==='round'||t.kind==='row') r
 function overlap(a,b){ const A=bbox(a),B=bbox(b), e=0.02;
   if(T[a.type].kind==='round'&&T[b.type].kind==='round'){ const ra=A.w/2-e, rb=B.w/2-e; return Math.hypot(a.x-b.x,a.y-b.y)<ra+rb; }
   return A.x0<B.x1-e&&B.x0<A.x1-e&&A.y0<B.y1-e&&B.y0<A.y1-e; }
+function doorClear(d){ const c=1.5, hw=d.w/2; // pas wolnej podłogi przed drzwiami
+  if(d.rot%180===0) return d.y<S.L/2?{x0:d.x-hw,y0:0,x1:d.x+hw,y1:c}:{x0:d.x-hw,y0:S.L-c,x1:d.x+hw,y1:S.L};
+  return d.x<S.W/2?{x0:0,y0:d.y-hw,x1:c,y1:d.y+hw}:{x0:S.W-c,y0:d.y-hw,x1:S.W,y1:d.y+hw}; }
+function hitRect(it,R){ const b=bbox(it), e=0.02; return b.x0<R.x1-e&&R.x0<b.x1-e&&b.y0<R.y1-e&&R.y0<b.y1-e; }
+function blocksDoor(it){ const t=T[it.type]; if(t.kind==='door'||t.kind==='zone'||t.floor) return false; return S.items.some(d=>T[d.type].kind==='door'&&hitRect(it,doorClear(d))); }
 function outside(it){ const b=bbox(it), e=0.02; return b.x0<-e||b.y0<-e||b.x1>S.W+e||b.y1>S.L+e; }
 function conflicts(){ const bad=new Set(); const its=S.items;
   for(let i=0;i<its.length;i++){ const a=its[i]; if(outside(a)) bad.add(a.id);
     for(let j=i+1;j<its.length;j++){ const b=its[j];
       if(T[a.type].kind==='door'||T[b.type].kind==='door') continue;
+      if(T[a.type].kind==='zone'||T[b.type].kind==='zone') continue;
       if((T[a.type].floor&&T[b.type].kind==='box'&&!T[b.type].floor)||(T[b.type].floor&&T[a.type].kind==='box'&&!T[a.type].floor)) continue; // np. DJ na parkiecie
       if(overlap(a,b)){ bad.add(a.id); bad.add(b.id); } } }
+  blockedDoors=0; for(const a of its) if(blocksDoor(a)){ bad.add(a.id); blockedDoors++; }
   return bad; }
+let blockedDoors=0;
+const tkey=it=>it.type==='row'?'R'+it.num:String(it.num);
+function badgePos(it){ const a=it.rot*Math.PI/180, [w,h]=dims(it); let lx=0, ly=0;
+  if(it.type==='row'){ lx=-w/2-0.38; } else if(it.type==='school') ly=-0.3; else if(it.type==='conf') ly=-0.275;
+  return [r2(it.x+lx*Math.cos(a)-ly*Math.sin(a)), r2(it.y+lx*Math.sin(a)+ly*Math.cos(a))]; }
+function parseGuests(){ return (S.guests||'').split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(l=>{ const m=l.match(/^(.*?)\s*[;|]\s*(R?\d+)\s*$/i); return m?{name:m[1].trim(),want:m[2].toUpperCase()}:{name:l,want:null}; }); }
+function assign(){ const G=parseGuests(); const tables=S.items.filter(i=>TABLED.has(T[i.type].kind)&&i.num).sort((a,b)=>(a.type==='row')-(b.type==='row')||a.num-b.num);
+  const by=new Map(), cap=new Map(); tables.forEach(t=>{ by.set(tkey(t),[]); cap.set(tkey(t),seatsOf(t)); });
+  const rest=[], out=[];
+  for(const g of G){ if(g.want&&by.has(g.want)&&by.get(g.want).length<cap.get(g.want)) by.get(g.want).push(g.name); else if(g.want&&!by.has(g.want)) out.push(g.name+' (brak stołu '+g.want+')'); else rest.push(g.name); }
+  for(const name of rest){ const t=tables.find(t=>by.get(tkey(t)).length<cap.get(tkey(t))); if(t) by.get(tkey(t)).push(name); else out.push(name); }
+  return {by,out,total:G.length,tables}; }
 
 /* ---------- historia ---------- */
 function snap(){ return JSON.stringify(S.items.map(({id,...r})=>r)); }
@@ -335,39 +379,49 @@ function updUndo(){ $('bUndo').disabled=!hist.length; $('bRedo').disabled=!fut.l
 
 /* ---------- dodawanie ---------- */
 function make(type,x,y,rot=0,extra={}){ const t=T[type]; const it={id:uid++,type,x,y,rot};
-  if(t.kind==='round'||t.kind==='row') it.n=t.seats; if(t.resize){ it.w=t.w; it.h=t.h; } return Object.assign(it,extra); }
+  if(t.kind==='round'||t.kind==='row') it.n=t.seats; if(t.resize){ it.w=t.w; it.h=t.h; } if(t.pin) it.pin=true; if(t.kind==='zone') it.label='KAWA'; return Object.assign(it,extra); }
+function nextNum(row){ return 1+Math.max(0,...S.items.filter(i=>TABLED.has(T[i.type].kind)&&(i.type==='row')===row&&i.num).map(i=>i.num)); }
+function renumber(){ const band=v=>Math.round(v/0.6);
+  for(const row of [false,true]){ const L=S.items.filter(i=>TABLED.has(T[i.type].kind)&&(i.type==='row')===row).sort((a,b)=>band(a.y)-band(b.y)||a.x-b.x); L.forEach((it,k)=>it.num=k+1); } }
 function freeSpot(it){ // szukaj wolnego miejsca od środka sali
   const [w,h]=dims(it); const cx=S.W/2, cy=S.L/2;
   for(let r=0;r<Math.max(S.W,S.L);r+=0.5){ for(let a=0;a<16;a++){ const x=r2(cx+Math.cos(a/16*Math.PI*2)*r), y=r2(cy+Math.sin(a/16*Math.PI*2)*r);
-      it.x=Math.round(x*10)/10; it.y=Math.round(y*10)/10; if(!outside(it)&&!S.items.some(o=>T[o.type].kind!=='door'&&overlap(o,it))) return; } }
+      it.x=Math.round(x*10)/10; it.y=Math.round(y*10)/10; if(!outside(it)&&!S.items.some(o=>T[o.type].kind!=='door'&&overlap(o,it))&&!blocksDoor(it)) return; } }
   it.x=cx; it.y=cy; }
 function add(type){ push(); const it=make(type,S.W/2,S.L/2);
   if(type==='door'){ const n=S.items.filter(i=>i.type==='door').length; it.x=n%2?Math.max(0.6,S.W-1.6):Math.min(S.W-0.6,1.6); it.y=S.L-0.125; } else freeSpot(it);
+  if(TABLED.has(T[type].kind)) it.num=nextNum(type==='row');
   S.items.push(it); sel=it.id; render(); hideWelcome(); }
 
 /* ---------- szybkie ustawienia ---------- */
-function clearKeepDoors(){ S.items=S.items.filter(i=>T[i.type].kind==='door'); }
-function tryPlace(it){ if(outside(it)) return false; if(S.items.some(o=>T[o.type].kind!=='door'&&overlap(o,it))) return false; S.items.push(it); return true; }
+function clearKeepDoors(){ S.items=S.items.filter(i=>i.pin); } // zostają stałe elementy: wejścia, kolumny, strefy, przypięte
+function fits(it){ return !outside(it)&&!S.items.some(o=>T[o.type].kind!=='door'&&overlap(o,it))&&!blocksDoor(it); }
+function tryPlace(it){ if(!fits(it)) return false; S.items.push(it); return true; }
 function front(){ // scena albo ekran z przodu sali; zwraca y, od którego można stawiać
-  if(S.W>=8&&S.L>=10){ const w=Math.min(8,Math.max(4,r1(S.W*0.45))), h=S.L>=16?3:2.5; S.items.push(make('stage',S.W/2,h/2,0,{w,h})); return h+1.8; }
-  S.items.push(make('screen',S.W/2,0.15,0,{w:Math.min(3,S.W-2),h:0.3})); return 2.2; }
+  if(S.W>=8&&S.L>=10){ const w=Math.min(8,Math.max(4,r1(S.W*0.45))), h=S.L>=16?3:2.5; if(tryPlace(make('stage',S.W/2,h/2,0,{w,h}))) return h+1.8; }
+  tryPlace(make('screen',S.W/2,0.15,0,{w:Math.min(3,S.W-2),h:0.3})); return 2.2; }
+function placeRow(cx,cy,n,max){ // rząd dzielony wokół kolumn i stref; zwraca liczbę postawionych krzeseł
+  const x0=cx-n*CH/2; let run=[], got=0;
+  const flush=()=>{ if(run.length){ const k=Math.min(run.length,max-got); if(k>0){ const a=run[0]; S.items.push(make('row',r2(x0+(a+k/2)*CH),cy,0,{n:k})); got+=k; } run=[]; } };
+  for(let i=0;i<n;i++){ const t=make('row',r2(x0+(i+0.5)*CH),cy,0,{n:1}); if(fits(t)) run.push(i); else flush(); }
+  flush(); return got; }
 function blocks(usable,unit,maxPer,aisle){ // podział szerokości na bloki z przejściami
   for(let k=1;k<20;k++){ const b=(usable-(k-1)*aisle)/k; const n=Math.floor(b/unit+1e-6); if(n<1) return null; if(n<=maxPer) return {k,n,b}; } return null; }
 const LAYOUTS={
   theatre:{name:'Teatralne',fn(){ clearKeepDoors(); let y=front(); const side=1.2, aisle=1.2; const lim=Math.floor(S.W*S.L+1e-6); let cnt=0; const B=blocks(S.W-2*side,CH,16,aisle); if(!B) return;
       const total=B.k*B.n*CH+(B.k-1)*aisle; let x0=(S.W-total)/2;
-      while(y+0.9<=S.L-1.5+1e-6&&cnt<lim){ for(let k=0;k<B.k&&cnt<lim;k++){ const w=B.n*CH; const n=Math.min(B.n,lim-cnt); if(tryPlace(make('row',r2(x0+k*(w+aisle)+w/2),r2(y+0.45),0,{n}))) cnt+=n; } y+=0.9; } }},
+      while(y+0.9<=S.L-1.5+1e-6&&cnt<lim){ for(let k=0;k<B.k&&cnt<lim;k++){ const w=B.n*CH; cnt+=placeRow(r2(x0+k*(w+aisle)+w/2),r2(y+0.45),B.n,lim-cnt); } y+=0.9; } }},
   school:{name:'Szkolne',fn(){ clearKeepDoors(); let y=front(); const B=blocks(S.W-2.4,1.85,4,1.2); if(!B) return; const lim=Math.floor(S.W*S.L+1e-6); let cnt=0;
       const total=B.k*B.n*1.85+(B.k-1)*1.2; let x0=(S.W-total)/2;
       while(y+1.2<=S.L-1.2+1e-6&&cnt+3<=lim){ for(let k=0;k<B.k;k++) for(let i=0;i<B.n;i++) if(cnt+3<=lim&&tryPlace(make('school',r2(x0+k*(B.n*1.85+1.2)+i*1.85+0.925),r2(y+0.6)))) cnt+=3; y+=1.85; } }},
-  banquet:{name:'Bankiet',fn(){ clearKeepDoors(); if(S.W>=8&&S.L>=12){ S.items.push(make('stage',S.W/2,1.25,0,{w:Math.min(6,r1(S.W*0.4)),h:2.5})); if(S.W*S.L>=160) S.items.push(make('dance',S.W/2,2.5+0.4+2.5,0,{w:5,h:5})); }
+  banquet:{name:'Bankiet',fn(){ clearKeepDoors(); if(S.W>=8&&S.L>=12){ tryPlace(make('stage',S.W/2,1.25,0,{w:Math.min(6,r1(S.W*0.4)),h:2.5})); if(S.W*S.L>=160) tryPlace(make('dance',S.W/2,2.5+0.4+2.5,0,{w:5,h:5})); }
       const p=3.4, d=1.8+2*CH, m=0.4; const nx=Math.floor((S.W-2*m-d)/p)+1, ny=Math.floor((S.L-2*m-d)/p)+1; if(nx<1||ny<1) return;
       const ox=(S.W-((nx-1)*p+d))/2+d/2, oy=(S.L-((ny-1)*p+d))/2+d/2;
       for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) tryPlace(make('round10',r2(ox+i*p),r2(oy+j*p))); }},
-  cocktail:{name:'Koktajl',fn(){ clearKeepDoors(); S.items.push(make('bar',S.W/2,S.L-0.6,0,{w:Math.min(5,S.W-2),h:0.8}));
+  cocktail:{name:'Koktajl',fn(){ clearKeepDoors(); const bw=Math.min(5,S.W-2); if(!tryPlace(make('bar',S.W/2,S.L-0.6,0,{w:bw,h:0.8}))) tryPlace(make('bar',S.W-0.6,S.L/2,90,{w:bw,h:0.8}));
       const p=3.5; const nx=Math.max(1,Math.floor((S.W-1)/p)), ny=Math.max(1,Math.floor((S.L-3)/p)); const ox=(S.W-(nx-1)*p)/2, oy=1.5+(S.L-3-(ny-1)*p)/2;
       for(let j=0;j<ny;j++) for(let i=0;i<nx;i++) tryPlace(make('cocktail',r2(ox+i*p),r2(oy+j*p))); S.stand=true; $('stand').checked=true; }},
-  ushape:{name:'Podkowa (U)',fn(){ clearKeepDoors(); S.items.push(make('screen',S.W/2,0.15,0,{w:Math.min(3,S.W-2),h:0.3}));
+  ushape:{name:'Podkowa (U)',fn(){ clearKeepDoors(); tryPlace(make('screen',S.W/2,0.15,0,{w:Math.min(3,S.W-2),h:0.3}));
       const m=0.8, dd=0.8+CH, top=2.6, bottomY=S.L-m-dd/2; const armLen=bottomY-dd/2-top; const n=Math.floor(armLen/1.8+1e-6);
       for(let i=0;i<n;i++){ tryPlace(make('conf',r2(m+dd/2),r2(top+0.9+i*1.8),90)); tryPlace(make('conf',r2(S.W-m-dd/2),r2(top+0.9+i*1.8),270)); }
       const inner=S.W-2*(m+dd); const nb=Math.floor(inner/1.8+1e-6); const ox=(S.W-nb*1.8)/2;
@@ -382,7 +436,7 @@ const LICONS={
   ushape:'<rect x="12" y="2" width="16" height="2" rx="1" fill="#d4b07a"/><path d="M6 8 V26 H34 V8" fill="none" stroke="#cfc9bf" stroke-width="4"/>',
   empty:'<rect x="4" y="3" width="32" height="24" rx="2" fill="none" stroke="#cfc9bf" stroke-width="1.5" stroke-dasharray="3 2"/>'
 };
-function applyLayout(k){ push(); if(k!=='cocktail'&&k!=='empty'){ S.stand=false; $('stand').checked=false; } LAYOUTS[k].fn(); sel=null; render(); hideWelcome(); fit();
+function applyLayout(k){ push(); if(k!=='cocktail'&&k!=='empty'){ S.stand=false; $('stand').checked=false; } LAYOUTS[k].fn(); renumber(); sel=null; render(); hideWelcome(); fit();
   const c=calc(); toast(`${LAYOUTS[k].name}: ${Math.min(c.cap,c.limit)} osób · możesz cofnąć ↶`); }
 
 /* ---------- obliczenia ---------- */
@@ -399,14 +453,18 @@ function shape(it){ const t=T[it.type]; const [w,h]=dims(it); let s='';
   const tbl='#f7f2ea', tblS='#8f7f6a';
   switch(t.kind){
     case 'round': { const r=t.d/2; for(let k=0;k<it.n;k++){ const a=k/it.n*Math.PI*2-Math.PI/2; const cx=Math.cos(a)*(r+0.28), cy=Math.sin(a)*(r+0.28); s+=chair(cx,cy,a*180/Math.PI+90); }
-      s+=`<circle r="${r}" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/><text y="0.14" text-anchor="middle" font-size="0.4" fill="#6b5d4c" font-weight="600">${it.n}</text>`; break; }
+      s+=`<circle r="${r}" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; if(!it.num) s+=`<text y="0.14" text-anchor="middle" font-size="0.4" fill="#6b5d4c" font-weight="600">${it.n}</text>`; break; }
     case 'row': for(let i=0;i<it.n;i++) s+=chair(-w/2+CH/2+i*CH,0.05); s+=`<rect x="${-w/2}" y="-0.45" width="${w}" height="0.9" fill="transparent"/>`; break;
     case 'rect': s+=[-0.6,0,0.6].map(x=>chair(x,-0.68,0)+chair(x,0.68,180)).join('')+`<rect x="-0.9" y="-0.4" width="1.8" height="0.8" rx="0.05" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
     case 'school': s+=[-0.6,0,0.6].map(x=>chair(x,0.32,180)).join('')+`<rect x="-0.9" y="-0.6" width="1.8" height="0.6" rx="0.05" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
     case 'conf': s+=[-0.6,0,0.6].map(x=>chair(x,0.4,180)).join('')+`<rect x="-0.9" y="-0.675" width="1.8" height="0.8" rx="0.05" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
     case 'cocktail': s+=`<circle r="0.7" fill="rgba(107,93,76,.08)" stroke="#a39581" stroke-width="0.03" stroke-dasharray="0.12 0.1"/><circle r="0.4" fill="${tbl}" stroke="${tblS}" stroke-width="0.04"/>`; break;
     case 'door': s+=`<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" fill="#3fae6a"/>`+
-      `<text y="${-h/2-0.15}" text-anchor="middle" font-size="0.32" fill="#2f8a52" font-weight="600">WYJŚCIE ${fmt(w)} m</text>`; break;
+      `<text y="${-h/2-0.15}" text-anchor="middle" font-size="0.32" fill="#2f8a52" font-weight="600">DRZWI ${fmt(w)} m</text>`; break;
+    case 'zone': { const lb=it.label||'STREFA'; const fs=Math.min(0.42,Math.max(0.2,Math.min(w/(lb.length*0.72),h*0.4)));
+      s+=`<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="0.08" fill="url(#hatch)" stroke="#7a9ab0" stroke-width="0.05" stroke-dasharray="0.25 0.12"/>`+
+         `<text y="${fs*0.35}" text-anchor="middle" font-size="${fs}" fill="#4d6f86" font-weight="600" letter-spacing="0.03">${lb}</text>`;
+      if(Math.min(w,h)>=1.4) s+=`<text y="${h/2-0.2}" text-anchor="middle" font-size="0.22" fill="#6b8597">${fmt(w)} × ${fmt(h)} m</text>`; break; }
     default: { const fill=t.fill==='dance'?'url(#dance)':t.fill; s+=`<rect x="${-w/2}" y="${-h/2}" width="${w}" height="${h}" rx="0.06" fill="${fill}" stroke="rgba(0,0,0,.25)" stroke-width="0.03"/>`;
       if(t.label&&Math.min(w,h)>=0.5){ const fs=Math.min(0.42,Math.max(0.22,Math.min(w/(t.label.length*0.75),h*0.45))); s+=`<text y="${fs*0.35}" text-anchor="middle" font-size="${fs}" fill="${t.fill==='dance'||t.fill.startsWith('#d')?'#4a3a2c':'#fff'}" font-weight="600" letter-spacing="0.04">${t.label}</text>`; }
       if(t.resize&&Math.min(w,h)>=1.2) s+=`<text y="${h/2-0.18}" text-anchor="middle" font-size="0.24" fill="${t.fill==='dance'||t.fill.startsWith('#d')?'#6b5d4c':'rgba(255,255,255,.75)'}">${fmt(w)} × ${fmt(h)} m</text>`; }
@@ -416,6 +474,7 @@ function render(){
   const bad=conflicts(); const pad=1.2;
   svg.setAttribute('viewBox',`${-pad} ${-pad} ${S.W+2*pad} ${S.L+2*pad}`);
   let g=`<defs><pattern id="dance" width="1" height="1" patternUnits="userSpaceOnUse"><rect width="1" height="1" fill="#e8dcc4"/><rect width="0.5" height="0.5" fill="#d8c7a6"/><rect x="0.5" y="0.5" width="0.5" height="0.5" fill="#d8c7a6"/></pattern>
+    <pattern id="hatch" width="0.4" height="0.4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="0.4" height="0.4" fill="rgba(122,154,176,.13)"/><line x1="0" y1="0" x2="0" y2="0.4" stroke="rgba(122,154,176,.35)" stroke-width="0.06"/></pattern>
     <pattern id="grid" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="rgba(90,74,58,.13)" stroke-width="0.02"/></pattern></defs>`;
   g+=`<rect x="-0.15" y="-0.15" width="${S.W+0.3}" height="${S.L+0.3}" rx="0.1" fill="#3a332b"/>`;
   g+=`<rect width="${S.W}" height="${S.L}" fill="#f1ebe1"/><rect width="${S.W}" height="${S.L}" fill="url(#grid)"/>`;
@@ -425,13 +484,21 @@ function render(){
   g+=`<text x="${S.W/2}" y="-0.45" text-anchor="middle" font-size="0.42" fill="#a8a39b">${fmt(S.W)} m</text>`;
   g+=`<text x="-0.45" y="${S.L/2}" text-anchor="middle" font-size="0.42" fill="#a8a39b" transform="rotate(-90 -0.45 ${S.L/2})">${fmt(S.L)} m</text>`;
   g+=`<text x="${S.W/2}" y="${S.L+0.75}" text-anchor="middle" font-size="0.3" fill="#6f6a63" letter-spacing="0.08">TYŁ SALI</text>`;
-  const order=[...S.items].sort((a,b)=>(T[b.type].floor?1:0)-(T[a.type].floor?1:0));
+  for(const d of S.items.filter(i=>T[i.type].kind==='door')){ const c=doorClear(d); g+=`<rect x="${c.x0}" y="${c.y0}" width="${c.x1-c.x0}" height="${c.y1-c.y0}" fill="rgba(63,174,106,.10)" stroke="rgba(63,174,106,.45)" stroke-width="0.03" stroke-dasharray="0.15 0.1"/>`; }
+  const order=[...S.items].sort((a,b)=>((T[b.type].floor||T[b.type].kind==='zone')?1:0)-((T[a.type].floor||T[a.type].kind==='zone')?1:0));
+  const seat=assign();
   for(const it of order){ const isSel=it.id===sel, isBad=bad.has(it.id); const b=bbox(it);
     g+=`<g class="it" data-id="${it.id}" transform="translate(${it.x} ${it.y}) rotate(${it.rot})">${shape(it)}</g>`;
     if(isBad) g+=`<rect x="${b.x0-0.05}" y="${b.y0-0.05}" width="${b.w+0.1}" height="${b.h+0.1}" rx="0.1" fill="rgba(224,122,106,.14)" stroke="#e07a6a" stroke-width="0.06" pointer-events="none"/>`;
     if(isSel) g+=`<rect x="${b.x0-0.1}" y="${b.y0-0.1}" width="${b.w+0.2}" height="${b.h+0.2}" rx="0.12" fill="none" stroke="#d4b07a" stroke-width="0.07" stroke-dasharray="0.25 0.12" pointer-events="none"/>`;
+    if(it.pin&&T[it.type].kind!=='door') g+=`<text x="${b.x1-0.05}" y="${b.y0+0.32}" text-anchor="end" font-size="0.3" pointer-events="none">📌</text>`;
   }
-  svg.innerHTML=g; sizeSvg(); stats(bad); selBar(); save(); }
+  for(const it of order){ if(!it.num||!TABLED.has(T[it.type].kind)) continue; const p=badgePos(it); const key=tkey(it); const n=(seat.by.get(key)||[]).length;
+    g+=`<g pointer-events="none"><circle cx="${p[0]}" cy="${p[1]}" r="0.3" fill="#2a2f37" stroke="#d4b07a" stroke-width="0.04"/><text x="${p[0]}" y="${p[1]+0.11}" text-anchor="middle" font-size="${it.type==='row'?0.24:0.3}" font-weight="600" fill="#f1ece4">${key}</text>`;
+    if(seat.total) g+=`<text x="${p[0]}" y="${p[1]+0.58}" text-anchor="middle" font-size="0.22" fill="${n>=seatsOf(it)?'#3f8a5a':'#8f7f6a'}" font-weight="600">${n}/${seatsOf(it)}</text>`;
+    g+=`</g>`; }
+  svg.innerHTML=g; sizeSvg(); stats(bad); selBar(); save();
+  if(document.body.classList.contains('m3d')&&window.__refresh3d) window.__refresh3d(); }
 function sizeSvg(){ const wr=$('wrap'); const pad=1.2; const vw=S.W+2*pad, vh=S.L+2*pad; const W=wr.clientWidth-24, H=wr.clientHeight-24;
   const base=Math.max(4,Math.min(W/vw,H/vh)); const px=base*zoom; svg.setAttribute('width',vw*px); svg.setAttribute('height',vh*px);
   svg.style.marginTop=Math.max(12,(wr.clientHeight-vh*px)/2)+'px'; }
@@ -454,7 +521,8 @@ function stats(bad){ const c=calc(); const G=+S.G||0;
   // kontrole
   const L=[]; const doors=S.items.filter(i=>T[i.type].kind==='door'); const P=G||cap;
   if(raw>c.limit) L.push(['bad',`Ustawiono ${raw} miejsc, ale przepisy pozwalają na ${c.limit} osób (1 m²/os.) — wynik ograniczono do limitu.`]);
-  if(bad.size) L.push(['bad',`${bad.size} ${bad.size===1?'element nachodzi':'elementy nachodzą'} na inne albo wystają poza salę (zaznaczone na czerwono).`]);
+  if(blockedDoors) L.push(['bad',`${blockedDoors} ${blockedDoors===1?'element stoi':'elementy stoją'} w wolnym pasie 1,5 m przed drzwiami (zielone pole).`]);
+  if(bad.size>blockedDoors) L.push(['bad',`Elementy nachodzą na siebie albo wystają poza salę (zaznaczone na czerwono).`]);
   if(P>0){ const needN=P>50?2:1; const needW=Math.max(0.9,0.6*P/100); const totW=doors.reduce((a,d)=>a+d.w,0); const minDoor=doors.length?Math.min(...doors.map(d=>d.w)):0;
     if(!doors.length) L.push(['info',`Dodaj wyjścia z katalogu (Wyjście), żeby sprawdzić ewakuację. Dla ${P} osób: min. ${needN} ${needN>1?'wyjścia':'wyjście'}, łącznie ${fmt(needW)} m drzwi.`]);
     else { L.push([doors.length>=needN?'ok':'bad',`Wyjścia: ${doors.length} z wymaganych ${needN}${P>50?' (ponad 50 osób)':''}.`]);
@@ -464,16 +532,28 @@ function stats(bad){ const c=calc(); const G=+S.G||0;
   const rowSeats=S.items.filter(i=>i.type==='row').reduce((a,i)=>a+i.n,0);
   if(rowSeats>200) L.push(['info',`Ponad 200 miejsc w rzędach: każde przejście min. 1,2 m, jeśli prowadzi do niego do 150 osób, i +0,6 m na każde kolejne 100 (§ 261).`]);
   if(S.H<2.8&&S.items.some(i=>i.type==='stage')) L.push(['info','Niska sala — sprawdź, czy nad sceną zostanie miejsce na ludzi i oświetlenie.']);
-  $('checks').innerHTML=L.map(([c,t])=>`<li class="${c}">${t}</li>`).join(''); }
+  $('checks').innerHTML=L.map(([c,t])=>`<li class="${c}">${t}</li>`).join('');
+  seatingList(); }
+function seatingList(){ const A=assign(); const el=$('seating'); const esc=v=>v.replace(/</g,'&lt;');
+  const os=n=>n===1?'osoba':([2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'osoby':'osób');
+  $('gcount').textContent=A.total?`Na liście: ${A.total} ${os(A.total)} · miejsc przy numerowanych stołach: ${A.tables.reduce((a,t)=>a+seatsOf(t),0)}`:'Stoły numerują się same przy ustawieniu sali. Kto nie ma numeru, siada przy kolejnym wolnym miejscu.';
+  if(!A.total){ el.innerHTML=''; return; }
+  let h=A.tables.filter(t=>A.by.get(tkey(t)).length).map(t=>{ const k=tkey(t), n=A.by.get(k); return `<div class="t" data-id="${t.id}"><b>${t.type==='row'?'Rząd '+t.num:'Stół '+t.num}</b><small>${n.length}/${seatsOf(t)}</small><div>${n.map(esc).join(', ')}</div></div>`; }).join('');
+  if(A.out.length) h+=`<div class="out">Bez miejsca (${A.out.length}): ${A.out.map(esc).join(', ')}</div>`;
+  el.innerHTML=h; }
 
 /* ---------- pasek zaznaczenia ---------- */
 function selBar(){ const el=$('sel'); const it=S.items.find(i=>i.id===sel); if(!it){ el.classList.remove('on'); return; }
-  const t=T[it.type]; let h=`<span class="name">${t.name}</span>`;
+  const t=T[it.type]; const tab=TABLED.has(t.kind)&&it.num; let h=`<span class="name">${tab?(it.type==='row'?'Rząd '+it.num:'Stół '+it.num):t.name}</span>`;
+  if(tab) h+=`<div class="grp"><button data-a="num-">−</button><span>nr ${it.num}</span><button data-a="num+">+</button></div>`;
+  if(t.kind==='zone') h+=`<button data-a="lbl">✎ ${it.label||'STREFA'}</button>`;
   if(t.kind==='round'||t.kind==='row') h+=`<div class="grp"><button data-a="n-">−</button><span>${it.n} ${t.kind==='row'?'krzeseł':'osób'}</span><button data-a="n+">+</button></div>`;
   if(t.resize){ h+=`<div class="grp"><button data-a="w-">−</button><span>szer. ${fmt(it.w)}</span><button data-a="w+">+</button></div>`;
     if(t.kind!=='door') h+=`<div class="grp"><button data-a="h-">−</button><span>gł. ${fmt(it.h)}</span><button data-a="h+">+</button></div>`; }
   if(t.kind!=='round'&&t.kind!=='cocktail'&&t.kind!=='door') h+=`<button data-a="rot">⟳ Obróć</button>`;
+  h+=`<button data-a="pin" title="Stały element zostaje przy automatycznych ustawieniach">${it.pin?'📌 Stały':'📍 Przypnij'}</button>`;
   h+=`<button data-a="dup">⧉ Kopiuj</button><button data-a="del" class="del">✕ Usuń</button>`;
+  if(tab){ const names=assign().by.get(tkey(it))||[]; if(names.length) h+=`<div class="who">${names.map((n,i)=>`<span>${i+1}. ${n.replace(/</g,'&lt;')}</span>`).join('')}</div>`; }
   el.innerHTML=h; el.classList.add('on'); }
 $('sel').addEventListener('click',e=>{ const a=e.target.closest('button')?.dataset.a; if(!a) return; const it=S.items.find(i=>i.id===sel); if(!it) return; const t=T[it.type];
   push();
@@ -482,7 +562,10 @@ $('sel').addEventListener('click',e=>{ const a=e.target.closest('button')?.datas
   if(a==='w-') it.w=r2(Math.max(it.type==='door'?0.8:0.3,it.w-stp)); if(a==='w+') it.w=r2(Math.min(40,it.w+stp));
   if(a==='h-') it.h=r2(Math.max(0.2,it.h-stp)); if(a==='h+') it.h=r2(Math.min(40,it.h+stp));
   if(a==='rot') it.rot=(it.rot+90)%360;
-  if(a==='dup'){ const c={...it,id:uid++}; const b=bbox(it); c.x=r2(it.x+(b.w<=b.h?b.w:0)+0.0); c.y=r2(it.y+(b.w>b.h?b.h:0)); if(outside(c)) freeSpot(c); S.items.push(c); sel=c.id; }
+  if(a==='pin') it.pin=!it.pin;
+  if(a==='lbl'){ const i=ZONES.indexOf(it.label); it.label=ZONES[(i+1)%ZONES.length]; }
+  if(a==='num-'||a==='num+'){ const row=it.type==='row'; const to=Math.max(1,it.num+(a==='num+'?1:-1)); const other=S.items.find(o=>o!==it&&(o.type==='row')===row&&o.num===to&&TABLED.has(T[o.type].kind)); if(other) other.num=it.num; it.num=to; }
+  if(a==='dup'){ const c={...it,id:uid++}; if(c.num) c.num=nextNum(c.type==='row'); const b=bbox(it); c.x=r2(it.x+(b.w<=b.h?b.w:0)+0.0); c.y=r2(it.y+(b.w>b.h?b.h:0)); if(outside(c)) freeSpot(c); S.items.push(c); sel=c.id; }
   if(a==='del'){ S.items=S.items.filter(i=>i.id!==sel); sel=null; }
   render(); });
 
@@ -515,6 +598,15 @@ function setDim(k,v){ const lim={L:[3,100],W:[3,100],H:[2,30],G:[0,20000]}[k]; v
 ['L','W','H','G'].forEach(k=>{ $(k).value=S[k]; $(k).addEventListener('change',e=>{ setDim(k,e.target.value); hideWelcome(); }); });
 document.querySelectorAll('.step button').forEach(b=>b.addEventListener('click',()=>{ const k=b.dataset.d; setDim(k,S[k]+(+b.dataset.s)); hideWelcome(); }));
 $('stand').checked=S.stand; $('stand').addEventListener('change',e=>{ S.stand=e.target.checked; render(); });
+$('glist').value=S.guests||''; let gT; $('glist').addEventListener('input',e=>{ S.guests=e.target.value; clearTimeout(gT); gT=setTimeout(render,350); });
+$('bRenum').onclick=()=>{ push(); renumber(); render(); toast('Stoły ponumerowane od przodu sali'); };
+$('bGset').onclick=()=>{ const n=parseGuests().length; if(!n){ toast('Najpierw wklej listę gości'); return; } setDim('G',n); toast('Liczba gości: '+n); };
+$('seating').addEventListener('click',e=>{ const t=e.target.closest('.t'); if(!t) return; sel=+t.dataset.id; render(); });
+$('bCsv').onclick=()=>{ const A=assign(); if(!A.total){ toast('Najpierw wklej listę gości'); return; } const rows=[['Stół / rząd','Miejsce','Gość']];
+  for(const t of A.tables) A.by.get(tkey(t)).forEach((n,i)=>rows.push([t.type==='row'?'Rząd '+t.num:'Stół '+t.num,i+1,n]));
+  A.out.forEach(n=>rows.push(['BEZ MIEJSCA','',n]));
+  const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=(S.name||'rozsadzenie').replace(/[^\wąćęłńóśźżĄĆĘŁŃÓŚŹŻ -]/g,'')+'.csv'; document.body.appendChild(a); a.click(); a.remove(); };
 
 /* ---------- katalog i układy ---------- */
 for(const k of Object.keys(LAYOUTS)){ const b=document.createElement('button'); b.innerHTML=`<svg viewBox="0 0 40 30">${LICONS[k]}</svg>${LAYOUTS[k].name}`; b.onclick=()=>applyLayout(k); $('layouts').appendChild(b); }
@@ -532,7 +624,7 @@ function plans(){ try{ return JSON.parse(localStorage.getItem(KEY+'-plans')||'{}
 function listPlans(){ const p=plans(); const names=Object.keys(p).sort(); $('plist').innerHTML=names.length?names.map(n=>`<option>${n.replace(/</g,'&lt;')}</option>`).join(''):'<option value="">— brak zapisanych planów —</option>'; if(S.name&&p[S.name]) $('plist').value=S.name; }
 $('pname').value=S.name||'';
 $('bSave').onclick=()=>{ const n=$('pname').value.trim()||`Plan ${new Date().toLocaleDateString('pl-PL')}`; S.name=n; $('pname').value=n; const p=plans(); p[n]={...S,items:S.items.map(({id,...r})=>r)}; try{ localStorage.setItem(KEY+'-plans',JSON.stringify(p)); toast('Zapisano: '+n); }catch(e){ toast('Nie udało się zapisać w tej przeglądarce'); } listPlans(); save(); };
-$('bLoad').onclick=()=>{ const n=$('plist').value; const p=plans()[n]; if(!p) return; push(); S={...S,...p,items:p.items.map(i=>({...i,id:uid++}))}; ['L','W','H','G'].forEach(k=>$(k).value=S[k]); $('stand').checked=!!S.stand; $('pname').value=n; sel=null; render(); fit(); hideWelcome(); toast('Wczytano: '+n); };
+$('bLoad').onclick=()=>{ const n=$('plist').value; const p=plans()[n]; if(!p) return; push(); S={...S,...p,items:p.items.map(i=>({...i,id:uid++}))}; ['L','W','H','G'].forEach(k=>$(k).value=S[k]); $('stand').checked=!!S.stand; $('glist').value=S.guests||''; $('pname').value=n; sel=null; render(); fit(); hideWelcome(); toast('Wczytano: '+n); };
 $('bNew').onclick=()=>{ push(); S.items=[]; S.name=''; $('pname').value=''; sel=null; render(); toast('Nowy, pusty plan · możesz cofnąć ↶'); };
 let delArm=0; $('bDel').onclick=()=>{ const n=$('plist').value; if(!n) return; if(Date.now()-delArm>2500){ delArm=Date.now(); $('bDel').textContent='Na pewno?'; setTimeout(()=>$('bDel').textContent='Usuń',2500); return; }
   const p=plans(); delete p[n]; try{ localStorage.setItem(KEY+'-plans',JSON.stringify(p)); }catch(e){} $('bDel').textContent='Usuń'; listPlans(); toast('Usunięto: '+n); };
@@ -553,7 +645,7 @@ $('bPrint').onclick=()=>window.print();
 /* ---------- drobiazgi ---------- */
 let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),2600); }
 function hideWelcome(){ $('welcome').style.display='none'; }
-window.__planer={get S(){ return S; },T,CH,dims,bbox,calc,seatsOf};
+window.__planer={get S(){ return S; },T,CH,dims,bbox,calc,seatsOf,assign,tkey,badgePos,TABLED};
 document.querySelectorAll('#mode button').forEach(b=>b.onclick=()=>{ const m=b.dataset.m; document.querySelectorAll('#mode button').forEach(x=>x.classList.toggle('on',x===b));
   document.body.classList.toggle('m3d',m==='3d'); if(m==='3d'){ sel=null; selBar(); window.__open3d&&window.__open3d(); } else { window.__close3d&&window.__close3d(); sizeSvg(); } });
 if(S.items.length) hideWelcome();
@@ -630,9 +722,12 @@ function build(){
   const walls=new THREE.Mesh(new THREE.BoxGeometry(W,H+0.02,L),[M.wall,M.wall,ceil,hide,M.wall,M.wall]); walls.position.set(W/2,H/2-0.02,L/2); walls.receiveShadow=true; root.add(walls);
   const base=new THREE.Mesh(new THREE.BoxGeometry(W+0.3,0.3,L+0.3),new THREE.MeshStandardMaterial({color:'#2a2520',roughness:1})); base.position.set(W/2,-0.16,L/2); root.add(base);
 
-  const chairs=[]; // macierze świata krzeseł (z kierunkiem oparcia)
+  const chairs=[]; // {m: macierz świata krzesła, key: numer stołu}
+  const {tkey,badgePos,TABLED}=P(); const showNums=$('nums').checked;
   for(const it of S.items){ const t=T[it.type]; const g=new THREE.Group(); g.applyMatrix4(itemMatrix(it)); const IM=itemMatrix(it);
-    const pushChair=(lx,lz,bx,bz)=>chairs.push(IM.clone().multiply(chairLocal(lx,lz,bx,bz)));
+    const key=it.num&&TABLED.has(t.kind)?tkey(it):null;
+    const pushChair=(lx,lz,bx,bz)=>chairs.push({m:IM.clone().multiply(chairLocal(lx,lz,bx,bz)),key});
+    if(key&&showNums){ const [bx,bz]=badgePos(it); const sp=numSprite(key); sp.position.set(bx,it.type==='row'?1.25:(t.kind==='round'?1.45:1.35),bz); root.add(sp); }
     switch(t.kind){
       case 'round': { const r=t.d/2; g.add(cyl(r,r,0.035,M.cloth,0,0.755,0,40), cyl(r+0.03,r+0.06,0.72,M.cloth,0,0.37,0,40));
         for(let k=0;k<it.n;k++){ const a=k/it.n*Math.PI*2-Math.PI/2; const cx=Math.cos(a)*(r+0.28), cz=Math.sin(a)*(r+0.28); pushChair(cx,cz,Math.cos(a),Math.sin(a)); } break; }
@@ -641,6 +736,10 @@ function build(){
       case 'school': g.add(box(1.8,0.04,0.6,M.wood,0,0.74,-0.3)); [[-0.85,-0.55],[0.85,-0.55],[-0.85,-0.05],[0.85,-0.05]].forEach(([x,z])=>g.add(box(0.04,0.72,0.04,M.dark,x,0.36,z))); [-0.6,0,0.6].forEach(x=>pushChair(x,0.32,0,1)); break;
       case 'conf': g.add(box(1.8,0.04,0.8,M.cloth,0,0.74,-0.275), box(1.82,0.7,0.82,M.cloth,0,0.37,-0.275)); [-0.6,0,0.6].forEach(x=>pushChair(x,0.4,0,1)); break;
       case 'cocktail': g.add(cyl(0.4,0.4,0.03,M.cloth,0,1.1,0,32), cyl(0.05,0.05,1.08,M.dark,0,0.55,0,12), cyl(0.28,0.3,0.03,M.dark,0,0.015,0,24)); break;
+      case 'zone': { const [w,h]=dims(it); const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({color:'#7a9ab0',transparent:true,opacity:0.35,roughness:1,depthWrite:false}));
+        m.rotation.x=-Math.PI/2; m.position.y=0.012; m.receiveShadow=true; g.add(m);
+        const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(w,0.02,h)),new THREE.LineBasicMaterial({color:'#4d6f86'})); edge.position.y=0.02; g.add(edge);
+        const sp=labelSprite(it.label||'STREFA'); sp.position.set(0,1.0,0); g.add(sp); break; }
       case 'door': { const dh=Math.min(2.1,H-0.15); const d=box(it.w,dh,0.06,M.door,0,dh/2,0); g.add(d); g.add(box(0.36,0.14,0.05,M.exit,0,Math.min(H-0.1,dh+0.2),0)); break; }
       default: { const [w,h]=dims(it); const k=it.type;
         if(k==='stage'){ const sh=H>=3?0.6:0.4; g.add(box(w,sh,h,M.stage,0,sh/2,0), box(w+0.02,0.03,h+0.02,M.stageTop,0,sh+0.015,0)); }
@@ -658,7 +757,7 @@ function build(){
   // krzesła — instancje
   if(chairs.length){ const seat=new THREE.BoxGeometry(0.44,0.05,0.42); seat.translate(0,0.46,0); const back=new THREE.BoxGeometry(0.44,0.46,0.05); back.translate(0,0.72,0.19);
     const iS=new THREE.InstancedMesh(seat,M.chairSeat,chairs.length), iB=new THREE.InstancedMesh(back,M.chair,chairs.length);
-    chairs.forEach((m,i)=>{ iS.setMatrixAt(i,m); iB.setMatrixAt(i,m); }); [iS,iB].forEach(o=>{ o.castShadow=o.receiveShadow=true; root.add(o); }); }
+    chairs.forEach((c,i)=>{ iS.setMatrixAt(i,c.m); iB.setMatrixAt(i,c.m); }); [iS,iB].forEach(o=>{ o.castShadow=o.receiveShadow=true; root.add(o); }); }
   // goście
   if($('ppl').checked) people(chairs,S);
   $('v3load').style.display='none';
@@ -666,15 +765,19 @@ function build(){
 
 const CLOTHES=['#2f3a4a','#6b2f3a','#3a5a4a','#d4b07a','#8a8f99','#1f2329','#b4573e','#4a5d8a','#e8e2d6','#5e4b6e'];
 function people(chairs,S){ const {T,calc,bbox}=P(); const c=calc(); const lim=c.limit; let want=S.G?S.G:Math.min(c.seats+c.stand,lim); want=Math.min(want,lim);
-  const seatN=Math.min(want,chairs.length); let standN=S.stand?Math.min(want-seatN,c.stand):0; if(standN<0) standN=0;
+  const A=P().assign(); let pick=null;
+  if(A.total){ pick=[]; const byKey=new Map(); chairs.forEach((ch,i)=>{ if(ch.key){ if(!byKey.has(ch.key)) byKey.set(ch.key,[]); byKey.get(ch.key).push(i); } });
+    for(const [k,names] of A.by) (byKey.get(k)||[]).slice(0,names.length).forEach(i=>pick.push(i)); }
+  if(A.total) want=Math.min(A.total,lim);
+  const seatN=pick?pick.length:Math.min(want,chairs.length); let standN=S.stand?Math.min(want-seatN,c.stand):0; if(standN<0) standN=0;
   const total=seatN+standN; if(!total) return;
   const bodyG=new THREE.CylinderGeometry(0.15,0.19,1,10); const headG=new THREE.SphereGeometry(0.11,12,10);
   const bodies=new THREE.InstancedMesh(bodyG,M.ppl,total), heads=new THREE.InstancedMesh(headG,M.skin,total);
   const tmp=new THREE.Matrix4(), col=new THREE.Color(), q=new THREE.Quaternion(), pos=new THREE.Vector3(), sc=new THREE.Vector3();
   // równomiernie wybrane krzesła (nie zawsze pierwsze rzędy)
-  const idx=[...chairs.keys()]; if(seatN<chairs.length){ for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } }
+  let idx=[...chairs.keys()]; if(pick) idx=pick; else if(seatN<chairs.length){ for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; } }
   let n=0;
-  for(let k=0;k<seatN;k++){ const m=chairs[idx[k]]; m.decompose(pos,q,sc);
+  for(let k=0;k<seatN;k++){ const m=chairs[idx[k]].m; m.decompose(pos,q,sc);
     const fwd=new THREE.Vector3(0,0,-0.04).applyQuaternion(q);
     tmp.compose(new THREE.Vector3(pos.x+fwd.x,0.74,pos.z+fwd.z),q,new THREE.Vector3(1,0.55,1)); bodies.setMatrixAt(n,tmp);
     tmp.compose(new THREE.Vector3(pos.x+fwd.x,1.14,pos.z+fwd.z),q,new THREE.Vector3(1,1,1)); heads.setMatrixAt(n,tmp);
@@ -692,6 +795,14 @@ function people(chairs,S){ const {T,calc,bbox}=P(); const c=calc(); const lim=c.
   bodies.count=heads.count=n; [bodies,heads].forEach(o=>{ o.castShadow=true; o.receiveShadow=true; root.add(o); });
 }
 
+function numSprite(txt){ const c=document.createElement('canvas'); c.width=c.height=128; const g=c.getContext('2d');
+  g.beginPath(); g.arc(64,64,58,0,Math.PI*2); g.fillStyle='#2a2f37'; g.fill(); g.lineWidth=8; g.strokeStyle='#d4b07a'; g.stroke();
+  g.fillStyle='#f1ece4'; g.font=`600 ${txt.length>2?44:58}px Poppins, sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,64,68);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false,transparent:true})); sp.scale.set(0.55,0.55,1); sp.renderOrder=10; return sp; }
+function labelSprite(txt){ const c=document.createElement('canvas'); const g=c.getContext('2d'); g.font='600 44px Poppins, sans-serif'; const w=Math.ceil(g.measureText(txt).width)+48; c.width=w; c.height=80;
+  g.fillStyle='rgba(77,111,134,.92)'; g.beginPath(); g.roundRect(0,0,w,80,40); g.fill(); g.fillStyle='#fff'; g.font='600 44px Poppins, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(txt,w/2,43);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true})); sp.scale.set(w/80*0.45,0.45,1); return sp; }
+
 /* ---------- kamera ---------- */
 function setView(v){ view=v; const {S}=P(); const W=S.W, L=S.L, H=S.H, big=Math.max(W,L);
   document.querySelectorAll('.v3bar button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
@@ -704,6 +815,8 @@ function setView(v){ view=v; const {S}=P(); const W=S.W, L=S.L, H=S.H, big=Math.
 window.__open3d=async()=>{ live=true; $('v3load').style.display='grid'; $('v3load').textContent='Ładuję widok 3D…'; if(!(await boot())) return;
   size(); build(); setView(view); cancelAnimationFrame(raf); loop(); };
 window.__close3d=()=>{ live=false; cancelAnimationFrame(raf); };
+let rT; window.__refresh3d=()=>{ if(!R||!live) return; clearTimeout(rT); rT=setTimeout(()=>{ try{ build(); }catch(e){ console.error(e); } },120); };
+$('nums').addEventListener('change',()=>{ if(R&&live) build(); });
 document.querySelectorAll('.v3bar button').forEach(b=>b.onclick=()=>setView(b.dataset.v));
 $('ppl').addEventListener('change',()=>{ if(R&&live) build(); });
 </script>
